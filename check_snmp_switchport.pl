@@ -179,6 +179,17 @@ print "OutErrorRateWarn:$OutErrorRateWarn; OutErrorRateCrit:$OutErrorRateCrit\n"
 #		usage("idle critical (-i $opt_i <warn:crit>) must be > warning\n");
 #}
 
+my $seed = undef;
+my $seedfile = '/var/tmp/check_snmp_switch_' . $opt_H . '.' . $opt_n . '_seed';
+
+if (open (SEEDFILE,$seedfile)) {
+  $seed=<SEEDFILE>;
+  chomp $seed;
+} else {
+  $seed = 0;
+}
+close SEEDFILE;
+printf "seed: $seed\n" if $debug;
 
 # Get the kernel/system statistic values from SNMP
 
@@ -234,12 +245,18 @@ print "$in\t$inupkt\t$innupkt\t$out\t$outupkt\t$outnupkt\t$indiscard\t\t$outdisc
 
 alarm (0); # Done with network
 
+open (SEEDFILE,'>',$seedfile);
+print SEEDFILE "$in\n";
+close SEEDFILE if $debug;
+if ($in < $seed) {
+  exit;
+}
+
 #debug ifInOctets
 my $current = `/bin/date +"%Y%m%d %H%M%S"`;
 chomp $current;
 open( FILE, '>>', '/tmp/switchport.log' );
-print FILE "$current $tmp_in $in\n";
-close FILE;
+print FILE "$current\t$opt_H\t$opt_n\t$seed\t$tmp_in\t$in";
 
 # Calculate Here
 my ($inbit, $outbit, $inrate, $outrate, $inpkt, $outpkt, $indiscardrate, $outdiscardrate, $inerrorrate, $outerrorrate) = undef;
@@ -258,6 +275,8 @@ $outerrorrate = ( $outerror - $tmp_outerror ) / $outpkt * 100 ;
 
 print "inbit:$inbit, outbit:$outbit, indiscardrate:$indiscardrate, outdiscardrate:$outdiscardrate, inerrorrate:$inerrorrate, outerrorrate:$outerrorrate\n" if $debug;
 
+print FILE "\t$inbit\t$outbit\n";
+close FILE;
 
 # Threshold checks
 my $output = undef;
