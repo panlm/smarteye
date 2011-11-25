@@ -248,9 +248,11 @@ alarm (0); # Done with network
 open (SEEDFILE,'>',$seedfile);
 print SEEDFILE "$in\n";
 close SEEDFILE if $debug;
-if ($in < $seed) {
-  exit;
-}
+#if ($in < $seed) {
+#  exit;
+#}
+
+if ($in < $tmp_in || $out < $tmp_out) { exit; }
 
 #debug ifInOctets
 my $current = `/bin/date +"%Y%m%d %H%M%S"`;
@@ -275,7 +277,7 @@ $outerrorrate = ( $outerror - $tmp_outerror ) / $outpkt * 100 ;
 
 print "inbit:$inbit, outbit:$outbit, indiscardrate:$indiscardrate, outdiscardrate:$outdiscardrate, inerrorrate:$inerrorrate, outerrorrate:$outerrorrate\n" if $debug;
 
-print FILE "\t$inbit\t$outbit\n";
+print FILE "\t$inbit\t$tmp_out\t$out\t$outbit\n";
 close FILE;
 
 # Threshold checks
