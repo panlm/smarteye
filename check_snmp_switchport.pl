@@ -50,13 +50,13 @@ $opt_P = 161;
 $opt_v = "2c";
 $opt_n = "0";
 # Watch out for this: snmpd updates every 5 secs by default
-my $sleeptime = 6; # seconds
+my $sleeptime = 40; # seconds
 use vars qw($PROGNAME);
 use lib "/usr/local/groundwork/nagios/libexec";
 use utils qw($TIMEOUT %ERRORS &print_revision &support &usage);
 
 # default $TIMEOUT is 15 sec
-$TIMEOUT=15;
+$TIMEOUT=60;
 
 sub print_help ();
 sub print_usage ();
@@ -233,13 +233,20 @@ print "$in\t$inupkt\t$innupkt\t$out\t$outupkt\t$outnupkt\t$indiscard\t\t$outdisc
 
 alarm (0); # Done with network
 
-if ($in < $tmp_in || $out < $tmp_out) { exit; }
+if ($in < $tmp_in ) {
+    $in = 4294967295 + $in +1;
+}
+if ($out < $tmp_out ) {
+    $out = 4294967295 + $out +1;
+}
 
 #debug ifInOctets
 #my $current = `/bin/date +"%Y%m%d %H%M%S"`;
 #chomp $current;
-#open( FILE, '>>', '/tmp/switchport.log' );
-#print FILE "$current\t$opt_H\t$opt_n\t$seed\t$tmp_in\t$in";
+#open( FILE, '>>', '/tmp/switchport-2.log' );
+#print FILE "$current\t$opt_H\t$opt_n\t$tmp_in\t$in";
+#print FILE "\n";
+#close FILE;
 
 # Calculate Here
 my ($inbit, $outbit, $inrate, $outrate, $inpkt, $outpkt, $indiscardrate, $outdiscardrate, $inerrorrate, $outerrorrate) = undef;
