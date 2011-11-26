@@ -1,15 +1,5 @@
 #!/usr/local/groundwork/perl/bin/perl -w
 #
-# $Id$
-#
-# check_snmp_cpu_detail.pl checks detail CPU values through SNMP.
-# Copied from check_snmp_cpu.pl
-#
-# Copyright 2007 GroundWork Open Source, Inc. (“GroundWork”)  
-# All rights reserved. This program is free software; you can redistribute it and/or 
-# modify it under the terms of the GNU General Public License version 2 as published 
-# by the Free Software Foundation.
-#
 # This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
 # PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -51,37 +41,35 @@ my $perf = 0;
 
 use SNMP;
 use Getopt::Long;
-use vars qw($opt_V $opt_n $opt_h $opt_i $opt_o $opt_d $opt_D $opt_e $opt_E $opt_k $opt_K);
-use vars qw($opt_H $opt_C $opt_P $opt_v $opt_f);
+use vars qw($opt_h $opt_v $opt_C $opt_P $opt_V $opt_f);
+use vars qw($opt_H $opt_n $opt_i $opt_o $opt_d $opt_D $opt_e $opt_E $opt_k $opt_K);
 $opt_C = "yinjicomm";
 $opt_P = 161;
-$opt_v = "2c";
+$opt_V = "2c";
 $opt_n = "0";
 # Watch out for this: snmpd updates every 5 secs by default
-my $sleeptime = 50; # seconds
 use vars qw($PROGNAME);
 use lib "/usr/local/groundwork/nagios/libexec";
 use utils qw($TIMEOUT %ERRORS &print_revision &support &usage);
-
-# default $TIMEOUT is 15 sec
-$TIMEOUT=60;
+$TIMEOUT=60; # default 15s
+my $sleeptime = 50; # seconds
 
 sub print_help ();
 sub print_usage ();
 
-$PROGNAME = "check_snmp_net_detail.pl";
+$PROGNAME = "check_snmp_port";
 
 Getopt::Long::Configure('bundling');
 my $status = GetOptions ( 
         "h"   => \$opt_h, "help"             => \$opt_h,
-        "v"   => \$opt_v, "version"          => \$opt_v,
-        "V"   => \$opt_V, "debug"            => \$opt_V,
-        "H=s" => \$opt_H, "host=s"           => \$opt_H,
-        "C=s" => \$opt_C, "Community=s"      => \$opt_C,
-        "P"   => \$opt_P, "port"             => \$opt_P,
+        "v"   => \$opt_v, "debug"            => \$opt_v,
         "f"   => \$opt_f, "performance"      => \$opt_f,
         "t=s" => \$TIMEOUT, "timeout=s"      => \$TIMEOUT,
         "S=s" => \$sleeptime, "sleeptime=s"  => \$sleeptime,
+        "C=s" => \$opt_C, "Community=s"      => \$opt_C,
+        "P=s" => \$opt_P, "port=s"           => \$opt_P,
+        "V=s" => \$opt_V, "version=s"        => \$opt_V,
+        "H=s" => \$opt_H, "host=s"           => \$opt_H,
         "n=s" => \$opt_n, "SwitchPort=s"     => \$opt_n,
         "i=s" => \$opt_i, "InRate=s"         => \$opt_i,
         "o=s" => \$opt_o, "OutRate=s"        => \$opt_o,
@@ -101,10 +89,10 @@ if ($opt_h) {print_help(); exit $ERRORS{'UNKNOWN'}}
 if (!$opt_H) { die "-H <hostname> is required\n" }
 
 # check snmp version
-if ($opt_v && $opt_v !~ /1|2c/) { die "SNMP V1 or V2c only\n" }
+if ($opt_V && $opt_V !~ /1|2c/) { die "SNMP V1 or V2c only\n" }
 
 # Debug switch
-if ($opt_V) { $SNMP::debugging = 1; $debug = 1 }
+if ($opt_v) { $SNMP::debugging = 1; $debug = 1 }
 
 # Performance switch
 if ($opt_f) { $perf = 1; }
@@ -225,7 +213,7 @@ my $snmp_session = new SNMP::Session (
     DestHost   => $opt_H,
     Community  => $opt_C,
     RemotePort => $opt_P,
-    Version    => $opt_v
+    Version    => $opt_V
 );
 
 if ( ! $opt_n ) {
