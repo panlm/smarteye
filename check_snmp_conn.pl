@@ -1,15 +1,5 @@
 #!/usr/local/groundwork/perl/bin/perl -w
 #
-# $Id$
-#
-# check_snmp_cpu_w.pl checks CPU values through SNMP.
-# Copied from check_cpu_default.pl
-#
-# Copyright 2007 GroundWork Open Source, Inc. (“GroundWork”)  
-# All rights reserved. This program is free software; you can redistribute it and/or 
-# modify it under the terms of the GNU General Public License version 2 as published 
-# by the Free Software Foundation.
-#
 # This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
 # PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -20,7 +10,7 @@
 #
 # Change Log
 #----------------
-# 4-Nov-2005 - Harper Mann
+# 26-Nov-2011 - stevenpan@gmail.com
 #	Initial revision
 #
 use strict;
@@ -37,8 +27,7 @@ my $perf = 0;
 
 use SNMP;
 use Getopt::Long;
-use vars qw($opt_c );
-use vars qw($opt_H $opt_C $opt_V $opt_O $opt_D $opt_p $opt_h );
+use vars qw($opt_C $opt_O $opt_V $opt_D $opt_p $opt_h $opt_H $opt_c);
 $opt_C = "public";
 $opt_O = 161;
 $opt_V = "2c";
@@ -51,19 +40,19 @@ use utils qw($TIMEOUT %ERRORS &print_revision &support &usage);
 sub print_help ();
 sub print_usage ();
 
-$PROGNAME = "check_cpu";
+$PROGNAME = "check_snmp_conn";
 
 Getopt::Long::Configure('bundling');
 my $status = GetOptions ( 
-	"D"   => \$opt_D, "debug"		=> \$opt_D,
-	"H=s" => \$opt_H, "hostname=s"		=> \$opt_H,
 	"C=s" => \$opt_C, "community=s"	=> \$opt_C,
 	"O"   => \$opt_O, "snmpport" => \$opt_O,
 	"V"   => \$opt_V, "snmpversion"	=> \$opt_V,
-	"t"   => \$TIMEOUT, "timeout"	=> \$TIMEOUT,
-	"S"   => \$sleeptime, "sleeptime"	=> \$sleeptime,
-	"c=s" => \$opt_c, "conn=s"		=> \$opt_c,
+	"D"   => \$opt_D, "debug"		=> \$opt_D,
 	"p"   => \$opt_p, "performance"	=> \$opt_p,
+	"S=s" => \$sleeptime, "sleeptime=s"	=> \$sleeptime,
+	"t=s"   => \$TIMEOUT, "timeout=s"	=> \$TIMEOUT,
+	"H=s" => \$opt_H, "hostname=s"		=> \$opt_H,
+	"c=s" => \$opt_c, "conn=s"		=> \$opt_c,
 	"h"   => \$opt_h, "help"		=> \$opt_h
 );
 
@@ -84,7 +73,6 @@ if ($opt_p) { $perf = 1; }
 if ($opt_h) {print_help(); exit $ERRORS{'UNKNOWN'}}
 
 # Options checking
-# Percent CPU system utilization
 if ($opt_c) { 
 	($connwarn, $conncrit) = split /:/, $opt_c;
 
