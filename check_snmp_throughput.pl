@@ -19,19 +19,21 @@ my @sar_vals = undef;
 my @lines = undef;
 my @res = undef;
 
-my $InRateWarn = -1;
-my $InRateCrit = -1;
-my $OutRateWarn = -1;
-my $OutRateCrit = -1;
+my $InWarn = -1;
+my $InCrit = -1;
+my $OutWarn = -1;
+my $OutCrit = -1;
+my $ConnWarn = -1;
+my $ConnCrit = -1;
 
 my $debug = 0;
 my $perf = 0;
 
 use SNMP;
 use Getopt::Long;
-use vars qw($opt_h $opt_v $opt_C $opt_P $opt_V $opt_f);
-use vars qw($opt_H $opt_i $opt_o $opt_d);
-$opt_C = "yinjicomm";
+use vars qw($opt_h $opt_v $opt_f $opt_C $opt_P $opt_V);
+use vars qw($opt_H $opt_i $opt_o $opt_d $opt_c);
+$opt_C = "public";
 $opt_P = 161;
 $opt_V = "2c";
 my $opt_n = 0;
@@ -52,15 +54,16 @@ my $status = GetOptions (
         "h"   => \$opt_h, "help"             => \$opt_h,
         "v"   => \$opt_v, "debug"            => \$opt_v,
         "f"   => \$opt_f, "performance"      => \$opt_f,
-        "t=s" => \$TIMEOUT, "timeout=s"      => \$TIMEOUT,
+        "T=s" => \$TIMEOUT, "timeout=s"      => \$TIMEOUT,
         "S=s" => \$sleeptime, "sleeptime=s"  => \$sleeptime,
-        "C=s" => \$opt_C, "Community=s"      => \$opt_C,
+        "C=s" => \$opt_C, "community=s"      => \$opt_C,
         "P=s" => \$opt_P, "port=s"           => \$opt_P,
         "V=s" => \$opt_V, "version=s"        => \$opt_V,
         "H=s" => \$opt_H, "host=s"           => \$opt_H,
-        "i=s" => \$opt_i, "InRate=s"         => \$opt_i,
-        "o=s" => \$opt_o, "OutRate=s"        => \$opt_o,
+        "i=s" => \$opt_i, "in=s"             => \$opt_i,
+        "o=s" => \$opt_o, "out=s"            => \$opt_o,
         "d=s" => \$opt_d, "device=s"         => \$opt_d,
+        "c=s" => \$opt_c, "connections=s"    => \$opt_c,
 );
 
 if ($status == 0) { print_usage() ; exit $ERRORS{'UNKNOWN'}; }
@@ -84,31 +87,44 @@ if ($opt_f) { $perf = 1; }
 
 # Options checking
 if ($opt_i) { 
-        ($InRateWarn, $InRateCrit) = split /:/, $opt_i;
+        ($InWarn, $InCrit) = split /:/, $opt_i;
 
-        ($InRateWarn && $InRateCrit) || usage ("missing value -i <warn:crit>\n");
+        ($InWarn && $InCrit) || usage ("missing value -i <warn:crit>\n");
 
-        ($InRateWarn =~ /^\d{1,3}$/ && $InRateWarn > 0 && $InRateWarn <= 100) &&
-        ($InRateCrit =~ /^\d{1,3}$/ && $InRateCrit > 0 && $InRateCrit <= 100) ||
-                usage("Invalid value: -i <warn:crit> (In Rate Percent): $opt_i\n");
+        ($InWarn =~ /^\d+$/ && $InWarn > 0) &&
+        ($InCrit =~ /^\d+$/ && $InCrit > 0) ||
+                usage("Invalid value: -i <warn:crit> (In): $opt_i\n");
 
-        ($InRateCrit > $InRateWarn) || 
+        ($InCrit > $InWarn) || 
                 usage("critical (-i $opt_i <warn:crit>) must be > warning\n");
 }
-print "InRateWarn:$InRateWarn; InRateCrit:$InRateCrit\n" if $debug;
+print "InWarn:$InWarn; InCrit:$InCrit\n" if $debug;
 if ($opt_o) { 
-        ($OutRateWarn, $OutRateCrit) = split /:/, $opt_o;
+        ($OutWarn, $OutCrit) = split /:/, $opt_o;
 
-        ($OutRateWarn && $OutRateCrit) || usage ("missing value -o <warn:crit>\n");
+        ($OutWarn && $OutCrit) || usage ("missing value -o <warn:crit>\n");
 
-        ($OutRateWarn =~ /^\d{1,3}$/ && $OutRateWarn > 0 && $OutRateWarn <= 100) &&
-        ($OutRateCrit =~ /^\d{1,3}$/ && $OutRateCrit > 0 && $OutRateCrit <= 100) ||
-                usage("Outvalid value: -o <warn:crit> (Out Rate Percent): $opt_o\n");
+        ($OutWarn =~ /^\d+$/ && $OutWarn > 0) &&
+        ($OutCrit =~ /^\d+$/ && $OutCrit > 0) ||
+                usage("Invalid value: -o <warn:crit> (Out): $opt_o\n");
 
-        ($OutRateCrit > $OutRateWarn) || 
+        ($OutCrit > $OutWarn) || 
                 usage("critical (-o $opt_o <warn:crit>) must be > warning\n");
 }
-print "OutRateWarn:$OutRateWarn; OutRateCrit:$OutRateCrit\n" if $debug;
+print "OutWarn:$OutWarn; OutCrit:$OutCrit\n" if $debug;
+if ($opt_c) { 
+        ($ConnWarn, $ConnCrit) = split /:/, $opt_c;
+
+        ($ConnWarn && $ConnCrit) || usage ("missing value -c <warn:crit>\n");
+
+        ($ConnWarn =~ /^\d+$/ && $ConnWarn > 0) &&
+        ($ConnCrit =~ /^\d+$/ && $ConnCrit > 0) ||
+                usage("Invalid value: -c <warn:crit> (Connections): $opt_c\n");
+
+        ($ConnCrit > $ConnWarn) || 
+                usage("critical (-c $opt_c <warn:crit>) must be > warning\n");
+}
+print "ConnWarn:$ConnWarn; ConnCrit:$ConnCrit\n" if $debug;
 
 print "timeout:$TIMEOUT sleeptime:$sleeptime\n" if $debug;
 
@@ -129,15 +145,16 @@ my ($string) = undef;
 ]);
 check_for_errors();
 
-my $str1 = undef;
+my $str1 = "";
 my $i = 0;
 for ( $i = 0; $i <= $#$string; $i++ ) {
-    if ( @$string[$i]->val =~ /$opt_H/ ) {
+    if ( @$string[$i]->val =~ /^$opt_H$/ ) {
         printf "%s\n",@$string[$i]->val if $debug;
         $str1 = @$string[$i]->val;
         last;
     }
 }
+if ( $str1 =~ /^$/ ) { die "host ip (-H) cannot be found in device (-d)\n" }
 
 my $oid = "13";
 for ( $i = 0; $i < length($str1); $i++ ) {
@@ -151,6 +168,7 @@ my ($tmp_in, $tmp_out) = undef;
     ['1.3.6.1.4.1.22610.2.4.3.4.2.1.1.4',$oid],
     ['1.3.6.1.4.1.22610.2.4.3.4.2.1.1.6',$oid]
 ]);
+check_for_errors();
 
 printf "in:%s\t out:%s\n",$tmp_in,$tmp_out if $debug;
 
@@ -164,6 +182,7 @@ my ($in, $out, $conn) = undef;
     ['1.3.6.1.4.1.22610.2.4.3.4.2.1.1.6',$oid],
     ['1.3.6.1.4.1.22610.2.4.3.4.2.1.1.9',$oid]
 ]);
+check_for_errors();
 
 printf "in:%s\t out:%s\t conn:%s\n",$in,$out,$conn if $debug;
 
@@ -186,8 +205,29 @@ $outbit = ( $out - $tmp_out ) * 8 / $sleeptime ;
 my $output = undef;
 
 $output = $output . sprintf("In: %.2fbps ", $inbit);
+if ($InCrit > 0) {
+        ($inbit > $InCrit) ? ($output = $output . "(Critical) ") :
+                ($inbit > $InWarn) ? ($output = $output . "(Warning) ") :
+                        ($output = $output."(OK) ");
+} else {
+        $output=$output."(OK) ";
+}
 $output = $output . sprintf("Out: %.2fbps ", $outbit);
+if ($OutCrit > 0) {
+        ($outbit > $OutCrit) ? ($output = $output . "(Critical) ") :
+                ($outbit > $OutWarn) ? ($output = $output . "(Warning) ") :
+                        ($output = $output . "(OK) ");
+} else {
+        $output=$output."(OK) ";
+}
 $output = $output . sprintf("Connections: %d ", $conn);
+if ($ConnCrit > 0) {
+        ($conn > $ConnCrit) ? ($output = $output . "(Critical) ") :
+                ($conn > $ConnWarn) ? ($output = $output . "(Warning) ") :
+                        ($output = $output . "(OK) ");
+} else {
+        $output=$output."(OK) ";
+}
 
 # Main output
 print "$output";
@@ -195,9 +235,12 @@ print "$output";
 # Performance output
 if ($perf) {;
         print " |";
-        printf(" In=%.2f;;;;",$inbit);
-        printf(" Out=%.2f;;;;",$outbit);
-        printf(" Conn=%d;;;;",$conn);
+        if ( $InCrit < 0 ) { printf(" In=%.2f;;;;",$inbit) }
+        else { printf(" In=%.2f;%s;%s;;",$inbit,$InWarn,$InCrit) }
+        if ( $OutCrit < 0 ) { printf(" Out=%.2f;;;;",$outbit) }
+        else { printf(" Out=%.2f;%s;%s;;",$outbit,$OutWarn,$OutCrit) }
+        if ( $ConnCrit < 0 ) { printf(" Conn=%d;;;;",$conn) }
+        else { printf(" Conn=%d;%s;%s;;",$conn,$ConnWarn,$ConnCrit) }
 }
 
 print "\n";
@@ -214,17 +257,20 @@ exit (0); #OK
 
 # Usage sub
 sub print_usage () {
-        print "Usage: $PROGNAME 
+    print "Usage: $PROGNAME 
         [-h], --help
-        [-V], --debug
-        [-H], --host
-        [-C], --Community <community>
-        [-P], --port snmp_port (default 161)
-        [-v], --version snmp_version (default 2c)
-        [-n], --SwitchPort <switchport> (default 2)
-        [-f] (output Nagios performance data)
-        [-i], --InRate <warn:crit> percent
-        [-o], --OutRate <warn:crit> percent
+        [-v], --debug
+        [-f], --performance             (output Nagios performance data)
+        [-T], --timeout <seconds>       (default is $TIMEOUT)
+        [-S], --sleeptime <seconds>     (default is $sleeptime)
+        [-C], --community <community>
+        [-P], --port <snmp_port>        (default is $opt_P)
+        [-V], --version <snmp_version>  (default is $opt_V)
+        [-H], --host <ip>
+        [-i], --in <warn:crit>          (bps)
+        [-o], --out <warn:crit>         (bps)
+        [-d], --device <ip>
+        [-c], --connections <warn:crit>
         \n";
 }
 
