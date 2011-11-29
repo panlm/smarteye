@@ -15,10 +15,6 @@
 #
 use strict;
 
-my @sar_vals = undef;
-my @lines = undef;
-my @res = undef;
-
 my $InWarn = -1;
 my $InCrit = -1;
 my $OutWarn = -1;
@@ -43,11 +39,13 @@ use lib "/usr/local/groundwork/nagios/libexec";
 use utils qw($TIMEOUT %ERRORS &print_revision &support &usage);
 $TIMEOUT=60; # default 15s
 my $sleeptime = 50; # seconds
+print "timeout:$TIMEOUT sleeptime:$sleeptime\n" if $debug;
 
 sub print_help ();
 sub print_usage ();
 
-$PROGNAME = "check_snmp_port";
+my $tmp_dir = "/var/tmp";
+$PROGNAME = "check_snmp_throughput";
 
 Getopt::Long::Configure('bundling');
 my $status = GetOptions ( 
@@ -126,11 +124,12 @@ if ($opt_c) {
 }
 print "ConnWarn:$ConnWarn; ConnCrit:$ConnCrit\n" if $debug;
 
-print "timeout:$TIMEOUT sleeptime:$sleeptime\n" if $debug;
-
 # Get the kernel/system statistic values from SNMP
 
 alarm ( $TIMEOUT ); # Don't hang Nagios
+
+my $history_file_name = $PROGNAME . "_" . $opt_d . "_" . $opt_H;
+print "$tmp_dir/$history_file_name\n" if $debug;
 
 my $snmp_session = new SNMP::Session (
     DestHost   => $opt_d,
@@ -162,21 +161,35 @@ for ( $i = 0; $i < length($str1); $i++ ) {
 }
 printf "$oid\n" if $debug;
 
-my ($tmp_in, $tmp_out) = undef;
+my ($last_check_time, $tmp_in, $tmp_out) = undef;
+if ( -r "$tmp_dir/$history_file_name" ) {
+    open(FILE,"<$tmp_dir/$history_file_name");
+    $last_check_time = <FILE>;
+    chomp($last_check_time);
+    $tmp_in = <FILE>;
+    chomp($tmp_in);
+    $tmp_out = <FILE>;
+    chomp($tmp_out);
+    close(FILE);
+} else {
+    # retrieve the data from the remote host
+    $last_check_time = time();
+    ($tmp_in, $tmp_out) = $snmp_session->get([
+        ['1.3.6.1.4.1.22610.2.4.3.4.2.1.1.4',$oid],
+        ['1.3.6.1.4.1.22610.2.4.3.4.2.1.1.6',$oid]
+    ]);
+    check_for_errors();
+
+    # need to sleep to get delta
+    sleep $sleeptime;
+
+}
+
+printf "time: %s\t in:%s\t out:%s\n",$last_check_time,$tmp_in,$tmp_out if $debug;
+
+my ($check_time, $in, $out, $conn) = undef;
 # retrieve the data from the remote host
-($tmp_in, $tmp_out) = $snmp_session->get([
-    ['1.3.6.1.4.1.22610.2.4.3.4.2.1.1.4',$oid],
-    ['1.3.6.1.4.1.22610.2.4.3.4.2.1.1.6',$oid]
-]);
-check_for_errors();
-
-printf "in:%s\t out:%s\n",$tmp_in,$tmp_out if $debug;
-
-# need to sleep to get delta
-sleep $sleeptime;
-
-my ($in, $out, $conn) = undef;
-# retrieve the data from the remote host
+$check_time = time();
 ($in, $out, $conn) = $snmp_session->get([
     ['1.3.6.1.4.1.22610.2.4.3.4.2.1.1.4',$oid],
     ['1.3.6.1.4.1.22610.2.4.3.4.2.1.1.6',$oid],
@@ -184,7 +197,16 @@ my ($in, $out, $conn) = undef;
 ]);
 check_for_errors();
 
-printf "in:%s\t out:%s\t conn:%s\n",$in,$out,$conn if $debug;
+if ( open(FILE, ">$tmp_dir/$history_file_name") ) {
+    print FILE "$check_time\n";
+    print FILE "$in\n";
+    print FILE "$out\n";
+    #print FILE join(",", @arr_mvalues)."\n";
+    #print FILE join(",", @arr_values)."\n";
+    close(FILE);
+}
+
+printf "time: %s\t in:%s\t out:%s\t conn:%s\n",$check_time,$in,$out,$conn if $debug;
 
 alarm (0); # Done with network
 
@@ -198,8 +220,8 @@ if ($out < $tmp_out ) {
 
 # Calculate Here
 my ($inbit, $outbit) = undef;
-$inbit = ( $in - $tmp_in ) * 8 / $sleeptime ;
-$outbit = ( $out - $tmp_out ) * 8 / $sleeptime ;
+$inbit = ( $in - $tmp_in ) * 8 / ( $check_time - $last_check_time ) ;
+$outbit = ( $out - $tmp_out ) * 8 / ( $check_time - $last_check_time ) ;
 
 # Threshold checks
 my $output = undef;
