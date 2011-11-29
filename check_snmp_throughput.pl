@@ -39,7 +39,6 @@ use lib "/usr/local/groundwork/nagios/libexec";
 use utils qw($TIMEOUT %ERRORS &print_revision &support &usage);
 $TIMEOUT=60; # default 15s
 my $sleeptime = 50; # seconds
-print "timeout:$TIMEOUT sleeptime:$sleeptime\n" if $debug;
 
 sub print_help ();
 sub print_usage ();
@@ -124,13 +123,13 @@ if ($opt_c) {
 }
 print "ConnWarn:$ConnWarn; ConnCrit:$ConnCrit\n" if $debug;
 
-# Get the kernel/system statistic values from SNMP
-
-alarm ( $TIMEOUT ); # Don't hang Nagios
+print "timeout:$TIMEOUT sleeptime:$sleeptime\n" if $debug;
 
 my $history_file_name = $PROGNAME . "_" . $opt_d . "_" . $opt_H;
 print "$tmp_dir/$history_file_name\n" if $debug;
 
+# Get the kernel/system statistic values from SNMP
+alarm ( $TIMEOUT ); # Don't hang Nagios
 my $snmp_session = new SNMP::Session (
     DestHost   => $opt_d,
     Community  => $opt_C,
@@ -197,6 +196,7 @@ $check_time = time();
 ]);
 check_for_errors();
 
+# save data to history file
 if ( open(FILE, ">$tmp_dir/$history_file_name") ) {
     print FILE "$check_time\n";
     print FILE "$in\n";
