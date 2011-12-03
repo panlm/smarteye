@@ -1,4 +1,4 @@
-#!/usr/local/groundwork/perl/bin/perl -w
+#!/usr/local/smarteye/perl/bin/perl -w
 #
 # check_ifoperstatus.pl - nagios plugin 
 #
@@ -35,7 +35,7 @@
 
 use POSIX;
 use strict;
-use lib "/usr/local/groundwork/nagios/libexec"  ;
+use lib "/usr/local/smarteye/nagios/libexec"  ;
 use utils qw($TIMEOUT %ERRORS &print_revision &support);
 
 use Net::SNMP;
@@ -216,10 +216,13 @@ push(@snmpoids,$snmpIfAlias) if (defined $ifXTable) ;
       $state = 'OK';
       $answer = "Interface $name (index $snmpkey) is up.";
    }
+   #add output
+   #added by liuwei
+   $answer = $answer . sprintf(" | AdminStatus=%d;;;; OperStatus=%d;;;;",$response->{$snmpIfAdminStatus},$response->{$snmpIfOperStatus});  
 
 
-
-print ("$state: $answer");
+print ("$state - $answer");
+print "\n";
 exit $ERRORS{$state};
 
 
