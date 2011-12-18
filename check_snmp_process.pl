@@ -575,7 +575,9 @@ for (my $i=0; $i< $num_int; $i++) {
 }
 
 my $final_status=0;
-my $perf_output;
+my $memory_perf_output;
+my $cpu_perf_output;
+my $count_perf_output;
 my ($res_memory,$res_cpu)=(0,0);
 my $memory_print="";
 my $cpu_print="";
@@ -603,7 +605,7 @@ if (defined ($o_mem) ) {
    $memory_print=", Mem : ".sprintf("%.1f",$res_memory)."Mb OK";
  }
  if (defined($o_perf)) {
-	$perf_output= "'memory_usage'=".sprintf("%.1f",$res_memory) ."MB;".$o_memL[0].";".$o_memL[1];
+	$memory_perf_output= "'memory_usage'=".sprintf("%.1f",$res_memory) ."MB;".$o_memL[0].";".$o_memL[1];
  }
 }
 
@@ -670,8 +672,8 @@ if (defined ($o_cpu) ) {
       $cpu_print.=", Cpu : ".sprintf("%.0f",$found_value)."% OK";
     }
 	if (defined($o_perf)) {
-		if (!defined($perf_output)) {$perf_output="";} else {$perf_output.=" ";}
-		$perf_output.= "'cpu_usage'=". sprintf("%.0f",$found_value)."%;".$o_cpuL[0].";".$o_cpuL[1];
+		#if (!defined($perf_output)) {$perf_output="";} else {$perf_output.=" ";}
+		$cpu_perf_output = "'cpu_usage'=". sprintf("%.0f",$found_value)."%;".$o_cpuL[0].";".$o_cpuL[1];
 	}
   } else {
     if ($final_status==0) { $final_status=3 };
@@ -704,9 +706,9 @@ if (defined($o_critL[1]) && ($num_int_ok > $o_critL[1])) {
 print $memory_print,$cpu_print;
 
 if (defined($o_perf)) {
-	if (!defined($perf_output)) {$perf_output="";} else {$perf_output.=" ";}
-	$perf_output.= "'num_process'=". $num_int_ok.";".$o_warnL[0].";".$o_critL[0];
-	print " | ",$perf_output;
+	#if (!defined($perf_output)) {$perf_output="";} else {$perf_output.=" ";}
+	$count_perf_output = "'num_process'=". $num_int_ok.";".$o_warnL[0].";".$o_critL[0];
+	print " | ",$count_perf_output," ",$cpu_perf_output," ",$memory_perf_output;
 }
 print "\n";
 
