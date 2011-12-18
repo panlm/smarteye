@@ -17,7 +17,7 @@ use Net::SNMP;
 use Getopt::Long;
 
 ############### BASE DIRECTORY FOR TEMP FILE ########
-my $o_base_dir="/tmp/tmp_Nagios_proc.";
+my $o_base_dir="/var/tmp/tmp_Nagios_proc.";
 my $file_history=200;   # number of data to keep in files.
 my $delta_of_time_to_make_average=300;  # 5minutes by default
 
@@ -605,7 +605,7 @@ if (defined ($o_mem) ) {
    $memory_print=", Mem : ".sprintf("%.1f",$res_memory)."Mb OK";
  }
  if (defined($o_perf)) {
-	$memory_perf_output= "'memory_usage'=".sprintf("%.1f",$res_memory) ."MB;".$o_memL[0].";".$o_memL[1];
+	$memory_perf_output= "memory_usage=".sprintf("%.1f",$res_memory) ."MB;".$o_memL[0].";".$o_memL[1];
  }
 }
 
@@ -673,11 +673,12 @@ if (defined ($o_cpu) ) {
     }
 	if (defined($o_perf)) {
 		#if (!defined($perf_output)) {$perf_output="";} else {$perf_output.=" ";}
-		$cpu_perf_output = "'cpu_usage'=". sprintf("%.0f",$found_value)."%;".$o_cpuL[0].";".$o_cpuL[1];
+		$cpu_perf_output = "cpu_usage=". sprintf("%.0f",$found_value)."%;".$o_cpuL[0].";".$o_cpuL[1];
 	}
   } else {
     if ($final_status==0) { $final_status=3 };
     $cpu_print.=", No data for CPU (".$n_rows." line(s)):UNKNOWN";
+    $cpu_perf_output = "cpu_usage=;;;;";
   }
 }
 
@@ -707,7 +708,7 @@ print $memory_print,$cpu_print;
 
 if (defined($o_perf)) {
 	#if (!defined($perf_output)) {$perf_output="";} else {$perf_output.=" ";}
-	$count_perf_output = "'num_process'=". $num_int_ok.";".$o_warnL[0].";".$o_critL[0];
+	$count_perf_output = "num_process=". $num_int_ok.";".$o_warnL[0].";".$o_critL[0];
 	print " | ",$count_perf_output," ",$cpu_perf_output," ",$memory_perf_output;
 }
 print "\n";
