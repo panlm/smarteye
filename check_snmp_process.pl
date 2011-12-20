@@ -229,31 +229,31 @@ sub verb { my $t=shift; print $t,"\n" if defined($o_verb) ; }
 sub check_options {
     Getopt::Long::Configure ("bundling");
     GetOptions(
-   	'v'	=> \$o_verb,		'verbose'	=> \$o_verb,
+        'v'	=> \$o_verb,		'verbose'	=> \$o_verb,
         'h'     => \$o_help,    	'help'        	=> \$o_help,
         'H:s'   => \$o_host,		'hostname:s'	=> \$o_host,
         'p:i'   => \$o_port,   		'port:i'	=> \$o_port,
         'C:s'   => \$o_community,	'community:s'	=> \$o_community,
         'l:s'   => \$o_login,           'login:s'       => \$o_login,
         'x:s'   => \$o_passwd,          'passwd:s'      => \$o_passwd,
-	'X:s'	=> \$o_privpass,		'privpass:s'	=> \$o_privpass,
-	'L:s'	=> \$v3protocols,		'protocols:s'	=> \$v3protocols,   
-	'c:s'   => \$o_crit,    	'critical:s'	=> \$o_crit,
+        'X:s'	=> \$o_privpass,	'privpass:s'	=> \$o_privpass,
+        'L:s'	=> \$v3protocols,	'protocols:s'	=> \$v3protocols,   
+        'c:s'   => \$o_crit,    	'critical:s'	=> \$o_crit,
         'w:s'   => \$o_warn,    	'warn:s'	=> \$o_warn,
-		't:i'   => \$o_timeout,       	'timeout:i'     => \$o_timeout,
+        't:i'   => \$o_timeout,       	'timeout:i'     => \$o_timeout,
         'n:s'   => \$o_descr,		'name:s'	=> \$o_descr,
         'r'     => \$o_noreg,           'noregexp'      => \$o_noreg,
         'f'     => \$o_path,           	'fullpath'      => \$o_path,
         'm:s'   => \$o_mem,           	'memory:s'    	=> \$o_mem,
         'a'     => \$o_mem_avg,       	'average'      	=> \$o_mem_avg,
         'u:s'   => \$o_cpu,       	'cpu'      	=> \$o_cpu,
-		'2'	=> \$o_version2,	'v2c'		=> \$o_version2,
-		'o:i'   => \$o_octetlength,    	'octetlength:i' => \$o_octetlength,
-		'g'   	=> \$o_get_all,       	'getall'      	=> \$o_get_all,
-		'A'     => \$o_param,         'param'       => \$o_param,
-		'F'     => \$o_perf,         'perfout'       => \$o_perf,
+        '2'	=> \$o_version2,	'v2c'		=> \$o_version2,
+        'o:i'   => \$o_octetlength,    	'octetlength:i' => \$o_octetlength,
+        'g'   	=> \$o_get_all,       	'getall'      	=> \$o_get_all,
+        'A'     => \$o_param,		'param'		=> \$o_param,
+        'F'     => \$o_perf,		'perfout'       => \$o_perf,
         'd:i'   => \$o_delta,           'delta:i'       => \$o_delta,		
-		'V'     => \$o_version,         'version'       => \$o_version
+        'V'     => \$o_version,         'version'       => \$o_version
     );
     if (defined ($o_help)) { help(); exit $ERRORS{"UNKNOWN"}};
     if (defined($o_version)) { p_version(); exit $ERRORS{"UNKNOWN"}};
@@ -584,29 +584,33 @@ my $cpu_print="";
 ###### Checks memory usage
 
 if (defined ($o_mem) ) {
- if (defined ($o_mem_avg)) {
-   for (my $i=0; $i< $num_int; $i++) { $res_memory += $result_cons{$proc_mem_table . "." . $tindex[$i]};}
-   $res_memory /= ($num_int_ok*1024);
-   verb("Memory average : $res_memory"); 
- } else {
-   for (my $i=0; $i< $num_int; $i++) { 
-     $res_memory = ($result_cons{$proc_mem_table . "." . $tindex[$i]} > $res_memory) ? $result_cons{$proc_mem_table . "." . $tindex[$i]} : $res_memory;
-   } 
-   $res_memory /=1024;
-   verb("Memory max : $res_memory");
- }
- if ($res_memory > $o_memL[1]) {
-   $final_status=2;
-   $memory_print=", Mem : ".sprintf("%.1f",$res_memory)."Mb > ".$o_memL[1]." CRITICAL";
- } elsif ( $res_memory > $o_memL[0]) {
-   $final_status=1;
-   $memory_print=", Mem : ".sprintf("%.1f",$res_memory)."Mb > ".$o_memL[0]." WARNING";
- } else {
-   $memory_print=", Mem : ".sprintf("%.1f",$res_memory)."Mb OK";
- }
- if (defined($o_perf)) {
-	$memory_perf_output= "memory_usage=".sprintf("%.1f",$res_memory) ."MB;".$o_memL[0].";".$o_memL[1];
- }
+    if (defined ($o_mem_avg)) {
+        for (my $i=0; $i< $num_int; $i++) { $res_memory += $result_cons{$proc_mem_table . "." . $tindex[$i]};}
+        $res_memory /= ($num_int_ok*1024);
+        verb("Memory average : $res_memory"); 
+    } else {
+        for (my $i=0; $i< $num_int; $i++) { 
+            $res_memory = ($result_cons{$proc_mem_table . "." . $tindex[$i]} > $res_memory) ? $result_cons{$proc_mem_table . "." . $tindex[$i]} : $res_memory;
+        } 
+        $res_memory /=1024;
+        verb("Memory max : $res_memory");
+    }
+    if ($o_memL[1]==0 && $o_memL[0]==0) {
+        $memory_print=", Mem : ".sprintf("%.1f",$res_memory)."Mb OK";
+    } else {
+        if ($res_memory > $o_memL[1]) {
+            $final_status=2;
+            $memory_print=", Mem : ".sprintf("%.1f",$res_memory)."Mb > ".$o_memL[1]." CRITICAL";
+        } elsif ( $res_memory > $o_memL[0]) {
+            $final_status=1;
+            $memory_print=", Mem : ".sprintf("%.1f",$res_memory)."Mb > ".$o_memL[0]." WARNING";
+        } else {
+            $memory_print=", Mem : ".sprintf("%.1f",$res_memory)."Mb OK";
+        }
+    }
+    if (defined($o_perf)) {
+        $memory_perf_output= "memory_usage=".sprintf("%.1f",$res_memory) ."MB;".$o_memL[0].";".$o_memL[1];
+    }
 }
 
 ######## Checks CPU usage
@@ -662,19 +666,23 @@ if (defined ($o_cpu) ) {
   if ($return != 0) { $cpu_print.="! ERROR writing file $temp_file_name !";$final_status=3;}
   ##### Check values (if something to check...)
   if (defined($found_value)) {
-    if ($found_value > $o_cpuL[1]) {
-      $final_status=2;
-      $cpu_print.=", Cpu : ".sprintf("%.0f",$found_value)."% > ".$o_cpuL[1]." CRITICAL";
-    } elsif ( $found_value > $o_cpuL[0]) {
-      $final_status=($final_status==2)?2:1;
-      $cpu_print.=", Cpu : ".sprintf("%.0f",$found_value)."% > ".$o_cpuL[0]." WARNING";
-    } else {
+    if ($o_cpuL[1] == 0 && $o_cpuL[0] == 0) {
       $cpu_print.=", Cpu : ".sprintf("%.0f",$found_value)."% OK";
+    } else {
+      if ($found_value > $o_cpuL[1]) {
+        $final_status=2;
+        $cpu_print.=", Cpu : ".sprintf("%.0f",$found_value)."% > ".$o_cpuL[1]." CRITICAL";
+      } elsif ( $found_value > $o_cpuL[0]) {
+        $final_status=($final_status==2)?2:1;
+        $cpu_print.=", Cpu : ".sprintf("%.0f",$found_value)."% > ".$o_cpuL[0]." WARNING";
+      } else {
+        $cpu_print.=", Cpu : ".sprintf("%.0f",$found_value)."% OK";
+      }
     }
-	if (defined($o_perf)) {
-		#if (!defined($perf_output)) {$perf_output="";} else {$perf_output.=" ";}
-		$cpu_perf_output = "cpu_usage=". sprintf("%.0f",$found_value)."%;".$o_cpuL[0].";".$o_cpuL[1];
-	}
+    if (defined($o_perf)) {
+      #if (!defined($perf_output)) {$perf_output="";} else {$perf_output.=" ";}
+      $cpu_perf_output = "cpu_usage=". sprintf("%.0f",$found_value)."%;".$o_cpuL[0].";".$o_cpuL[1];
+    }
   } else {
     if ($final_status==0) { $final_status=3 };
     $cpu_print.=", No data for CPU (".$n_rows." line(s)):UNKNOWN";
@@ -686,35 +694,36 @@ print $num_int_ok, " process ", (defined ($o_noreg)) ? "named " : "matching ", $
 
 #### Check for min and max number of process
 if ( $num_int_ok <= $o_critL[0] ) {
-   print "(<= ",$o_critL[0]," : CRITICAL)";
-   $final_status=2;
+    print "(<= ",$o_critL[0]," : CRITICAL)";
+    $final_status=2;
 } elsif ( $num_int_ok <= $o_warnL[0] ) {
-   print "(<= ",$o_warnL[0]," : WARNING)";
-   $final_status=($final_status==2)?2:1;
+    print "(<= ",$o_warnL[0]," : WARNING)";
+    $final_status=($final_status==2)?2:1;
 } else {
-   print "(> ",$o_warnL[0],")";
+    print "(> ",$o_warnL[0],")";
 }
 if (defined($o_critL[1]) && ($num_int_ok > $o_critL[1])) {
-  print " (> ",$o_critL[1]," : CRITICAL)";
-  $final_status=2;
+    print " (> ",$o_critL[1]," : CRITICAL)";
+    $final_status=2;
 } elsif (defined($o_warnL[1]) && ($num_int_ok > $o_warnL[1])) {
-   print " (> ",$o_warnL[1]," : WARNING)";
-   $final_status=($final_status==2)?2:1;
+    print " (> ",$o_warnL[1]," : WARNING)";
+    $final_status=($final_status==2)?2:1;
 } elsif (defined($o_warnL[1])) {
-   print " (<= ",$o_warnL[1],"):OK";
+    print " (<= ",$o_warnL[1],"):OK";
 }
 
 print $memory_print,$cpu_print;
 
 if (defined($o_perf)) {
-	#if (!defined($perf_output)) {$perf_output="";} else {$perf_output.=" ";}
-	$count_perf_output = "num_process=". $num_int_ok.";".$o_warnL[0].";".$o_critL[0];
-	print " | ",$count_perf_output," ",$cpu_perf_output," ",$memory_perf_output;
+    #if (!defined($perf_output)) {$perf_output="";} else {$perf_output.=" ";}
+    $count_perf_output = "num_process=". $num_int_ok.";".$o_warnL[0].";".$o_critL[0];
+    print " | ",$count_perf_output," ",$cpu_perf_output," ",$memory_perf_output;
 }
 print "\n";
 
 if ($final_status==2) { exit $ERRORS{"CRITICAL"};}
 if ($final_status==1) { exit $ERRORS{"WARNING"};}
 if ($final_status==3) { exit $ERRORS{"UNKNOWN"};}
+
 exit $ERRORS{"OK"};
 
