@@ -346,6 +346,9 @@ if ($outupkt < $tmp_outupkt ) {
 
 # Calculate Here
 my ($inbit, $outbit, $inrate, $outrate, $inpkt, $outpkt, $inpktps, $outpktps, $indiscardrate, $outdiscardrate, $inerrorrate, $outerrorrate) = undef;
+if ( $check_time == $last_check_time ) {
+    $check_time = $check_time + 1 ;
+}
 $inbit = ( $in - $tmp_in ) * 8 / ( $check_time - $last_check_time ) ;
 $outbit = ( $out - $tmp_out ) * 8 / ( $check_time - $last_check_time ) ;
 if ( $speed ) {
