@@ -37,6 +37,7 @@ my $perf = 0;
 
 use SNMP;
 use Getopt::Long;
+use Time::HiRes qw(time);
 use vars qw($opt_h $opt_v $opt_C $opt_P $opt_V $opt_f);
 use vars qw($opt_H $opt_n $opt_i $opt_o $opt_d $opt_D $opt_e $opt_E $opt_k $opt_K);
 $opt_C = "public";
