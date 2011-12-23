@@ -36,7 +36,7 @@ use vars qw($PROGNAME);
 use lib "/usr/local/groundwork/nagios/libexec";
 use utils qw($TIMEOUT %ERRORS &print_revision &support &usage);
 $TIMEOUT=60; # default 15s
-my $sleeptime = 50; # seconds
+my $sleeptime = 10; # seconds
 
 sub print_help ();
 sub print_usage ();
@@ -191,8 +191,10 @@ print "rawswapout: $swapoutrate\n" if $debug;
 # Threshold checks
 my $output = undef;
 
-$output = $output . sprintf("SwapIn: %.2fKB/s ", $swapin);
-$output = $output . sprintf("SwapOut: %.2fKB/s ", $swapout);
+$output = $output . sprintf("SwapIn: %.2f KB/s ", $swapin);
+$output = $output . sprintf("SwapOut: %.2f KB/s ", $swapout);
+$output = $output . sprintf("SwapIn: %.2f blocks/s ", $swapinrate);
+$output = $output . sprintf("SwapOut: %.2f blocks/s ", $swapoutrate);
 #$output = $output . sprintf("InRate: %.2f%% ", $inrate);
 #if ($InRateCrit > 0) {
 #        ($inrate > $InRateCrit) ? ($output = $output . "(Critical) ") :
@@ -218,6 +220,8 @@ if ($perf) {;
         print " |";
         printf(" swapin=%.2f;;;;",$swapin);
         printf(" swapout=%.2f;;;;",$swapout);
+        printf(" swapinblock=%.2f;;;;",$swapinrate);
+        printf(" swapoutblock=%.2f;;;;",$swapoutrate);
 #        if ($InRateCrit < 0) { printf(" InRate=%.2f;;;;", $inrate) }
 #        else { printf(" InRate=%.2f;%d;%d;;", $inrate,$InRateWarn,$InRateCrit) }
 #        if ($OutRateCrit < 0) { printf(" OutRate=%.2f;;;;", $outrate) }
