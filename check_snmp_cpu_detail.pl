@@ -25,10 +25,6 @@
 #
 use strict;
 
-my @sar_vals = undef;
-my @lines = undef;
-my @res = undef;
-
 my $cpu = -1;
 my $userwarn = -1;
 my $usercrit = -1;
@@ -46,6 +42,7 @@ my $perf = 0;
 
 use SNMP;
 use Getopt::Long;
+use Time::HiRes qw(time);
 use vars qw($opt_V $opt_c $opt_s $opt_n $opt_u $opt_i $opt_D $opt_p $opt_h $opt_w);
 use vars qw($opt_H $opt_m $opt_v $opt_o);
 $opt_c = -1;
@@ -61,7 +58,8 @@ use utils qw($TIMEOUT %ERRORS &print_revision &support &usage);
 sub print_help ();
 sub print_usage ();
 
-$PROGNAME = "check_cpu";
+my $tmp_dir = "/var/tmp";
+$PROGNAME = "check_snmp_cpu_detail";
 
 Getopt::Long::Configure('bundling');
 my $status = GetOptions ( 
@@ -69,7 +67,7 @@ my $status = GetOptions (
 	"H=s" => \$opt_H, "host=s"		=> \$opt_H,
 	"C=s" => \$opt_m, "Community=s"	=> \$opt_m,
 	"t"   => \$TIMEOUT, "timeout"	=> \$TIMEOUT,
-	"S"   => \$sleeptime, "sleeptime"	=> \$sleeptime,
+	"S"   => \$sleeptime, "sleeptime=s"	=> \$sleeptime,
 	"v"   => \$opt_v, "version"		=> \$opt_v,
 	"u=s" => \$opt_u, "user=s"		=> \$opt_u,
 	"n=s" => \$opt_n, "nice=s"   	=> \$opt_n,
@@ -181,8 +179,6 @@ if ($opt_w) {
 # Read /proc/stat values.  The first "cpu " line has aggregate values if
 # the system is SMP, otherwise, just get the requested CPU
 
-my ($lbl, $user, $nice, $sys, $idle, $wait, $total) = undef;
-my ($tmp_user, $tmp_nice, $tmp_sys, $tmp_idle, $tmp_wait) = undef;
 
 # Get the kernel/system statistic values from SNMP
 
@@ -195,43 +191,62 @@ my $snmp_session = new SNMP::Session (
     Version	=> $opt_v
 );
 
+my $history_file_name = $PROGNAME . "_" . $opt_H ;
+print "$tmp_dir/$history_file_name\n" if $debug;
+
+my ($last_check_time, $tmp_user, $tmp_sys, $tmp_nice, $tmp_idle, $tmp_wait) = undef;
+if ( open(FILE,"$tmp_dir/$history_file_name") ) {;
+    $last_check_time = <FILE>; chomp($last_check_time);
+    $tmp_user = <FILE>;        chomp($tmp_user);
+    $tmp_sys = <FILE>;         chomp($tmp_sys);
+    $tmp_nice = <FILE>;        chomp($tmp_nice);
+    $tmp_idle = <FILE>;        chomp($tmp_idle);
+    $tmp_wait = <FILE>;        chomp($tmp_wait);
+    close(FILE);
+} else {
+    # retrieve the data from the remote host
+    $last_check_time = time();
+    ($tmp_user, $tmp_sys, $tmp_nice, $tmp_idle, $tmp_wait) = $snmp_session->get([
+        ['ssCpuRawUser',0],
+        ['ssCpuRawSystem',0],
+        ['ssCpuRawNice',0],
+        ['ssCpuRawIdle',0],
+        ['ssCpuRawWait',0]
+    ]);
+    check_for_errors();
+
+    # need to sleep to get delta
+    sleep $sleeptime;
+}
+
+print "time\t user\t sys\t nice\t idle\t wait\n" if $debug;
+print "$last_check_time\t $tmp_user\t $tmp_sys\t $tmp_nice\t $tmp_idle $tmp_wait\n" if $debug;
+
+my ($check_time, $user, $sys, $nice, $idle, $wait) = undef;
+$check_time = time();
 # retrieve the data from the remote host
-($tmp_user, $tmp_sys, $tmp_nice, $tmp_idle, $tmp_wait) = $snmp_session->bulkwalk( 0, 4, 
-	[['ssCpuRawUser'],
-	 ['ssCpuRawSystem'],
-	 ['ssCpuRawNice'],
-	 ['ssCpuRawIdle'],
-	 ['ssCpuRawWait']]
-);
+($user, $sys, $nice, $idle, $wait) = $snmp_session->get([
+    ['ssCpuRawUser',0],
+    ['ssCpuRawSystem',0],
+    ['ssCpuRawNice',0],
+    ['ssCpuRawIdle',0],
+    ['ssCpuRawWait',0]
+]);
 check_for_errors();
 
-# Grab the values from the arrays
-$tmp_user = scalar(@$tmp_user[0]->val);
-$tmp_sys  = scalar(@$tmp_sys[0]->val);
-$tmp_nice = scalar(@$tmp_nice[0]->val);
-$tmp_idle = scalar(@$tmp_idle[0]->val);
-$tmp_wait = scalar(@$tmp_wait[0]->val);
+# save data to history file
+if ( open(FILE, ">$tmp_dir/$history_file_name") ) {
+    print FILE "$check_time\n";
+    print FILE "$user\n";
+    print FILE "$sys\n";
+    print FILE "$nice\n";
+    print FILE "$idle\n";
+    print FILE "$wait\n";
+    close(FILE);
+}
 
-# need to sleep to get delta
-sleep $sleeptime;
-
-# retrieve the data from the remote host
-($user, $sys, $nice, $idle, $wait) = $snmp_session->bulkwalk( 0, 4, 
-	[['ssCpuRawUser'],
-	 ['ssCpuRawSystem'],
-	 ['ssCpuRawNice'],
-	 ['ssCpuRawIdle'],
-	 ['ssCpuRawWait']]
-);
-check_for_errors();
-print "SNMP raw: user: $user sys: $sys nice: $nice idle: $idle wait: $wait\n" if $debug;
-
-# Grab the values from the arrays
-$user = scalar(@$user[0]->val);
-$sys  = scalar(@$sys[0]->val);
-$nice = scalar(@$nice[0]->val);
-$idle = scalar(@$idle[0]->val);
-$wait = scalar(@$wait[0]->val);
+print "time\t user\t sys\t nice\t idle\t wait\n" if $debug;
+print "$check_time\t $user\t $sys\t $nice\t $idle $wait\n" if $debug;
 
 alarm (0); # Done with network
 
@@ -261,6 +276,7 @@ $wait = $wait - $tmp_wait;
 print "SNMP raw: user: $user sys: $sys nice: $nice idle: $idle wait: $wait\n" if $debug;
 
 # Here we convert to percents
+my $total = undef;
 $total = $user + $sys + +$nice + $idle + $wait;
 if ( $total ) {
 $user  = $user / $total * 100;
