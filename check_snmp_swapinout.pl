@@ -10,7 +10,7 @@
 #
 # Change Log
 #----------------
-# 22-Dec-2010 - stevenpan@gmail.com
+# 22-Dec-2012 - stevenpan@gmail.com
 #        Initial revision
 #
 use strict;
