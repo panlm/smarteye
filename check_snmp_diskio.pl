@@ -117,27 +117,29 @@ my $snmp_session = new SNMP::Session (
 );
 
 my ($diskioidx, $diskiodev) = undef;
-($diskioidx, $diskiodev) = $snmp_session->bulkwalk( 0, 3, [
+($diskioidx, $diskiodev) = $snmp_session->bulkwalk( 0, 2, [
     ['.1.3.6.1.4.1.2021.13.15.1.1.1'],
     ['.1.3.6.1.4.1.2021.13.15.1.1.2']
 ]);
 check_for_errors();
 
-my ($string, $found) = undef;
+my ($idx, $string, $found) = undef;
 my $i = 0;
-for ( $i = 0; $i <= $#$diskiodev; $i++ ) {
+for ( $i = 0; $i <= $#$diskioidx; $i++ ) {
     $string = scalar(@$diskiodev[$i]->val);
-    printf "disk_label: %s\n",$string if $debug;
+    printf "disk_label: %s\n",$i,$string if $debug;
     if ( $string eq "$opt_l" ) {
         $found = 1;
         last;
     }
 }
-printf "i:$i\n" if $debug;
 if ( ! $found ) {
     printf "label not found\n";
     exit;
+} else {
+    $idx = scalar(@$diskioidx[$i]->val)
 }
+print "idx:$idx\n" if $debug;
 
 my $history_file_name = $PROGNAME . "_" . $opt_H . "_" . $opt_l ;
 print "$tmp_dir/$history_file_name\n" if $debug;
@@ -154,10 +156,10 @@ if ( open(FILE,"$tmp_dir/$history_file_name") ) {;
     # retrieve the data from the remote host
     $last_check_time = time();
     ($tmp_readbyte, $tmp_writebyte, $tmp_read, $tmp_write) = $snmp_session->get([
-        ['.1.3.6.1.4.1.2021.13.15.1.1.3',$i],
-        ['.1.3.6.1.4.1.2021.13.15.1.1.4',$i],
-        ['.1.3.6.1.4.1.2021.13.15.1.1.5',$i],
-        ['.1.3.6.1.4.1.2021.13.15.1.1.6',$i]
+        ['.1.3.6.1.4.1.2021.13.15.1.1.3',$idx],
+        ['.1.3.6.1.4.1.2021.13.15.1.1.4',$idx],
+        ['.1.3.6.1.4.1.2021.13.15.1.1.5',$idx],
+        ['.1.3.6.1.4.1.2021.13.15.1.1.6',$idx]
     ]);
     check_for_errors();
 
@@ -173,10 +175,10 @@ my ($check_time, $readbyte, $writebyte, $read, $write) = undef;
 # retrieve the data from the remote host
 $check_time = time();
 ($readbyte, $writebyte, $read, $write) = $snmp_session->get([
-    ['.1.3.6.1.4.1.2021.13.15.1.1.3',$i],
-    ['.1.3.6.1.4.1.2021.13.15.1.1.4',$i],
-    ['.1.3.6.1.4.1.2021.13.15.1.1.5',$i],
-    ['.1.3.6.1.4.1.2021.13.15.1.1.6',$i]
+    ['.1.3.6.1.4.1.2021.13.15.1.1.3',$idx],
+    ['.1.3.6.1.4.1.2021.13.15.1.1.4',$idx],
+    ['.1.3.6.1.4.1.2021.13.15.1.1.5',$idx],
+    ['.1.3.6.1.4.1.2021.13.15.1.1.6',$idx]
 ]);
 check_for_errors();
 
