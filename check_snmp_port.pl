@@ -448,25 +448,25 @@ print "$output";
 
 # Performance output
 if ($perf) {;
-        print " |";
-        printf(" In=%.2f;;;;",$inbit);
-        printf(" Out=%.2f;;;;",$outbit);
-        if ($InRateCrit < 0) { printf(" InRate=%.2f;;;;", $inrate) }
-        else { printf(" InRate=%.2f;%d;%d;;", $inrate,$InRateWarn,$InRateCrit) }
-        if ($OutRateCrit < 0) { printf(" OutRate=%.2f;;;;", $outrate) }
-        else { printf(" OutRate=%.2f;%d;%d;;", $outrate,$OutRateWarn,$OutRateCrit) }
-        if ($InDiscardRateCrit < 0) { printf(" InDiscardRate=%.2f;;;;", $indiscardrate) }
-        else { printf(" InDiscardRate=%.2f;%d;%d;;", $indiscardrate,$InDiscardRateWarn,$InDiscardRateCrit) }
-        if ($OutDiscardRateCrit < 0) { printf(" OutDiscardRate=%.2f;;;;", $outdiscardrate) }
-        else { printf(" OutDiscardRate=%.2f;%d;%d;;", $outdiscardrate,$OutDiscardRateWarn,$OutDiscardRateCrit) }
-        if ($InErrorRateCrit < 0) { printf(" InErrorRate=%.2f;;;;", $inerrorrate) }
-        else { printf(" InErrorRate=%.2f;%d;%d;;", $inerrorrate,$InErrorRateWarn,$InErrorRateCrit) }
-        if ($OutErrorRateCrit < 0) { printf(" OutErrorRate=%.2f;;;;", $outerrorrate) }
-        else { printf(" OutErrorRate=%.2f;%d;%d;;", $outerrorrate,$OutErrorRateWarn,$OutErrorRateCrit) }
-        if ($InPktPsCrit < 0) { printf(" InPktPs=%.2f;;;;", $inpktps) }
-        else { printf(" InPktPs=%.2f;%d;%d;;", $inpktps,$InPktPsWarn,$InPktPsCrit) }
-        if ($OutPktPsCrit < 0) { printf(" OutPktPs=%.2f;;;;", $outpktps) }
-        else { printf(" OutPktPs=%.2f;%d;%d;;", $outpktps,$OutPktPsWarn,$OutPktPsCrit) }
+    print " |";
+    printf(" In=%.2f;;;;",$inbit);
+    printf(" Out=%.2f;;;;",$outbit);
+    if ($InRateCrit < 0) { printf(" InRate=%.2f;;;;", $inrate) }
+    else { printf(" InRate=%.2f;%d;%d;;", $inrate,$InRateWarn,$InRateCrit) }
+    if ($OutRateCrit < 0) { printf(" OutRate=%.2f;;;;", $outrate) }
+    else { printf(" OutRate=%.2f;%d;%d;;", $outrate,$OutRateWarn,$OutRateCrit) }
+    if ($InDiscardRateCrit < 0) { printf(" InDiscardRate=%.2f;;;;", $indiscardrate) }
+    else { printf(" InDiscardRate=%.2f;%d;%d;;", $indiscardrate,$InDiscardRateWarn,$InDiscardRateCrit) }
+    if ($OutDiscardRateCrit < 0) { printf(" OutDiscardRate=%.2f;;;;", $outdiscardrate) }
+    else { printf(" OutDiscardRate=%.2f;%d;%d;;", $outdiscardrate,$OutDiscardRateWarn,$OutDiscardRateCrit) }
+    if ($InErrorRateCrit < 0) { printf(" InErrorRate=%.2f;;;;", $inerrorrate) }
+    else { printf(" InErrorRate=%.2f;%d;%d;;", $inerrorrate,$InErrorRateWarn,$InErrorRateCrit) }
+    if ($OutErrorRateCrit < 0) { printf(" OutErrorRate=%.2f;;;;", $outerrorrate) }
+    else { printf(" OutErrorRate=%.2f;%d;%d;;", $outerrorrate,$OutErrorRateWarn,$OutErrorRateCrit) }
+    if ($InPktPsCrit < 0) { printf(" InPktPs=%.2f;;;;", $inpktps) }
+    else { printf(" InPktPs=%.2f;%d;%d;;", $inpktps,$InPktPsWarn,$InPktPsCrit) }
+    if ($OutPktPsCrit < 0) { printf(" OutPktPs=%.2f;;;;", $outpktps) }
+    else { printf(" OutPktPs=%.2f;%d;%d;;", $outpktps,$OutPktPsWarn,$OutPktPsCrit) }
 }
 
 print "\n";
@@ -483,38 +483,38 @@ exit (0); #OK
 
 # Usage sub
 sub print_usage () {
-    print "Usage: $PROGNAME 
-        [-h], --help
-        [-v], --debug
-        [-f], --performance             (output Nagios performance data)
-        [-T], --timeout <seconds>       (default is $TIMEOUT)
-        [-S], --sleeptime <seconds>     (default is $sleeptime)
-        [-C], --community <community>
-        [-P], --port <snmp_port>        (default is $opt_P)
-        [-V], --version <snmp_version>  (default is $opt_V)
-        [-H], --host <ip>
-        [-n], --SwitchPort <switchport> (default 2)
-        [-i], --InRate <warn:crit> percent
-        [-o], --OutRate <warn:crit> percent
-        [-d], --InDiscardRate <warn:crit> percent
-        [-D], --OutDiscardRate <warn:crit> percent
-        [-e], --InErrorRate <warn:crit> percent
-        [-E], --OutErrorRate <warn:crit> percent
-        [-k], --InPktPs <warn:crit>
-        [-K], --OutPktPs <warn:crit>
-        \n";
+print "Usage: $PROGNAME 
+    [-h], --help
+    [-v], --debug
+    [-f], --performance             (output Nagios performance data)
+    [-T], --timeout <seconds>       (default is $TIMEOUT)
+    [-S], --sleeptime <seconds>     (default is $sleeptime)
+    [-C], --community <community>
+    [-P], --port <snmp_port>        (default is $opt_P)
+    [-V], --version <snmp_version>  (default is $opt_V)
+    [-H], --host <ip>
+    [-n], --SwitchPort <switchport> (default 2)
+    [-i], --InRate <warn:crit> percent
+    [-o], --OutRate <warn:crit> percent
+    [-d], --InDiscardRate <warn:crit> percent
+    [-D], --OutDiscardRate <warn:crit> percent
+    [-e], --InErrorRate <warn:crit> percent
+    [-E], --OutErrorRate <warn:crit> percent
+    [-k], --InPktPs <warn:crit>
+    [-K], --OutPktPs <warn:crit>
+    \n";
 }
 
 # Help sub
 sub print_help () {
-        print_revision($PROGNAME,'$Revision$');
-        print_usage();
+print_revision($PROGNAME,'$Revision$');
+print_usage();
 }
 
 sub check_for_errors {
-        if ( $snmp_session->{ErrorNum} ) {
-                print "UNKNOWN - error retrieving SNMP data: $snmp_session->{ErrorStr}\n";
-                exit $ERRORS{UNKNOWN};
-        }
+if ( $snmp_session->{ErrorNum} ) {
+    print "UNKNOWN - error retrieving SNMP data: $snmp_session->{ErrorStr}\n";
+    exit $ERRORS{UNKNOWN};
+}
 }
 
