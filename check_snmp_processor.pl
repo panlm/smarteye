@@ -125,7 +125,6 @@ if ( $opt_V eq "2c" ) {
             #print "$key => $value \n" if $debug;
             if ( $key eq "hrProcessorLoad" ) {
                 @$cpu[$i] = $value ;
-                print "set value: @$cpu[$i]\n";
                 $i++;
             }
         }
