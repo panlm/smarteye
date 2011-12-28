@@ -10,8 +10,11 @@
 #
 # Change Log
 #----------------
-# 22-Dec-2012 - stevenpan@gmail.com
+# 22-Dec-2011 - stevenpan@gmail.com
 #        Initial revision
+#
+# 28-Dec-2011 - stevenpan@gmail.com
+#        add snmp v1 snmp_session->gettable support
 #
 use strict;
 
@@ -23,6 +26,7 @@ my $perf = 0;
 
 use SNMP;
 use Getopt::Long;
+use Data::Dumper;
 use Time::HiRes qw(time);
 use vars qw($opt_h $opt_v $opt_C $opt_P $opt_V $opt_f);
 use vars qw($opt_H $opt_c $opt_d);
@@ -89,6 +93,7 @@ if ($opt_c) {
 print "CPUWarn:$CPUWarn; CPUCrit:$CPUCrit\n" if $debug;
 
 print "timeout:$TIMEOUT sleeptime:$sleeptime\n" if $debug;
+print "snmp_ver:$opt_V\n" if $debug;
 
 # Get the kernel/system statistic values from SNMP
 alarm ( $TIMEOUT ); # Don't hang Nagios
@@ -100,18 +105,41 @@ my $snmp_session = new SNMP::Session (
 );
 
 my $cpu = undef;
-# retrieve the data from the remote host
-($cpu) = $snmp_session->bulkwalk(0,1,[
-    ['hrProcessorLoad']
-]);
-check_for_errors();
+my $arr = undef;
+my ($key, $value, $c) = undef;
+if ( $opt_V eq "2c" ) {
+    ($arr) = $snmp_session->bulkwalk(0,1,[
+        ['hrProcessorLoad']
+    ]);
+    check_for_errors();
+    for ( my $i = 0; $i <= $#$arr; $i++ ) {
+        @$cpu[$i] = scalar(@$arr[$i]->val);
+    }
+} else {
+    ($arr) = $snmp_session->gettable('.1.3.6.1.2.1.25.3.3');
+    check_for_errors();
+    my $i = 0;
+    for $c (sort keys %$arr ) {
+        #print "$c: \n" if $debug;
+        while(($key,$value) = each %{@$arr{$c}}) {
+            #print "$key => $value \n" if $debug;
+            if ( $key eq "hrProcessorLoad" ) {
+                @$cpu[$i] = $value ;
+                print "set value: @$cpu[$i]\n";
+                $i++;
+            }
+        }
+    }
+}
+#print Dumper($cpu);
+#print "@$cpu[0] \t @$cpu[1]\n";
 
 # Calculate Here
 my $avg = 0;
 
 for ( my $i = 0; $i <= $#$cpu; $i++ ) {
-    $avg = $avg + scalar(@$cpu[$i]->val);
-    printf "%d\t",scalar(@$cpu[$i]->val) if $debug;
+    $avg = $avg + @$cpu[$i];
+    printf "%d\t",@$cpu[$i] if $debug;
 }
 print "\n" if $debug;
 
@@ -146,7 +174,7 @@ if ($perf) {;
         }
     } else {
         for ( my $i = 0; $i <= $#$cpu; $i++ ) {
-            printf(" p%d=%d;;;;",$i,scalar(@$cpu[$i]->val));
+            printf(" p%d=%d;;;;",$i,@$cpu[$i]);
         }
     }
 }
