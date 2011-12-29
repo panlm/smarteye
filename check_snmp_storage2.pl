@@ -116,23 +116,13 @@ if ( $opt_V eq "2c" ) {
     # gettable hrStorageTable .1.3.6.1.2.1.25.2.3
     ($arr) = $snmp_session->gettable('.1.3.6.1.2.1.25.2.3');
     check_for_errors();
-    my ($c, $key, $value) = undef;
+    my $c = undef;
     my $i = 0;
     for $c (sort keys %$arr ) {
-        #print "$c: \n" if $debug;
-        while(($key,$value) = each %{@$arr{$c}}) {
-            print "$key => $value \n" if $debug;
-            if ( $key eq "hrStorageDescr" ) {
-                @$storagedesc[$i] = $value ;
-            } elsif ( $key eq "hrStorageIndex" ) {
-                @$storageidx[$i] = $value ;
-            } elsif ( $key eq "hrStorageType" ) {
-                @$storagetype[$i] = $value ;
-                $i++;
-            } else {
-                next;
-            }
-        }
+        @$storagedesc[$i] = ${@$arr{$c}}{'hrStorageDescr'} ;
+        @$storageidx[$i]  = ${@$arr{$c}}{'hrStorageIndex'} ;
+        @$storagetype[$i] = ${@$arr{$c}}{'hrStorageType'} ;
+        $i++;
     }
 }
 
