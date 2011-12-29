@@ -1,5 +1,7 @@
 #!/usr/local/groundwork/perl/bin/perl -w
 #
+# OBSOLETED by check_snmp_storage.pl (2011/12/29)
+#
 # $Id$
 #
 # check_snmp_cpu_w.pl checks CPU values through SNMP.
