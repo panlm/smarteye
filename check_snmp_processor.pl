@@ -106,7 +106,6 @@ my $snmp_session = new SNMP::Session (
 
 my $cpu = undef;
 my $arr = undef;
-my ($key, $value, $c) = undef;
 if ( $opt_V eq "2c" ) {
     ($arr) = $snmp_session->bulkwalk(0,1,[
         ['hrProcessorLoad']
@@ -118,16 +117,21 @@ if ( $opt_V eq "2c" ) {
 } else {
     ($arr) = $snmp_session->gettable('.1.3.6.1.2.1.25.3.3');
     check_for_errors();
+    my $c = undef;
+    my %myhash = ();
+    #my ($key, $value) = undef;
     my $i = 0;
     for $c (sort keys %$arr ) {
-        #print "$c: \n" if $debug;
-        while(($key,$value) = each %{@$arr{$c}}) {
-            #print "$key => $value \n" if $debug;
-            if ( $key eq "hrProcessorLoad" ) {
-                @$cpu[$i] = $value ;
-                $i++;
-            }
-        }
+        %myhash = %{@$arr{$c}};
+        @$cpu[$i] = $myhash{'hrProcessorLoad'};
+        $i++;
+        #while(($key,$value) = each %{@$arr{$c}}) {
+        #    #print "$key => $value \n" if $debug;
+        #    if ( $key eq "hrProcessorLoad" ) {
+        #        @$cpu[$i] = $value ;
+        #        $i++;
+        #    }
+        #}
     }
 }
 #print Dumper($cpu);
