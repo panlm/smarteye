@@ -118,12 +118,10 @@ if ( $opt_V eq "2c" ) {
     ($arr) = $snmp_session->gettable('.1.3.6.1.2.1.25.3.3');
     check_for_errors();
     my $c = undef;
-    my %myhash = ();
     #my ($key, $value) = undef;
     my $i = 0;
     for $c (sort keys %$arr ) {
-        %myhash = %{@$arr{$c}};
-        @$cpu[$i] = $myhash{'hrProcessorLoad'};
+        @$cpu[$i] = ${@$arr{$c}}{'hrProcessorLoad'};
         $i++;
         #while(($key,$value) = each %{@$arr{$c}}) {
         #    #print "$key => $value \n" if $debug;
