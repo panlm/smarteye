@@ -135,7 +135,7 @@ for ( $i = 0; $i <= $#$dsktype; $i++ ) {
 printf "i:$i\n" if $debug;
 if ( !$found ) {
   printf "label not found\n";
-  exit;
+  exit 2;
 }
 $found = scalar(@$dskidx[$i]->val);
 printf "found:$found\n" if $debug;
