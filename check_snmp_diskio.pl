@@ -23,6 +23,9 @@ my $WriteByteCrit = -1;
 my $debug = 0;
 my $perf = 0;
 
+#sysUpTimeInstance
+my $uptimeoid = ".1.3.6.1.2.1.1.3.0";
+
 use SNMP;
 use Getopt::Long;
 use Time::HiRes qw(time);
@@ -135,7 +138,7 @@ for ( $i = 0; $i <= $#$diskioidx; $i++ ) {
 }
 if ( ! $found ) {
     printf "label not found\n";
-    exit;
+    exit (2);
 } else {
     $idx = scalar(@$diskioidx[$i]->val)
 }
@@ -153,9 +156,8 @@ if ( open(FILE,"$tmp_dir/$history_file_name") ) {;
     $tmp_write = <FILE>;       chomp($tmp_write);
     close(FILE);
 } else {
-    # retrieve the data from the remote host
-    $last_check_time = time();
-    ($tmp_readbyte, $tmp_writebyte, $tmp_read, $tmp_write) = $snmp_session->get([
+    ($last_check_time, $tmp_readbyte, $tmp_writebyte, $tmp_read, $tmp_write) = $snmp_session->get([
+        [$uptimeoid],
         ['.1.3.6.1.4.1.2021.13.15.1.1.3',$idx],
         ['.1.3.6.1.4.1.2021.13.15.1.1.4',$idx],
         ['.1.3.6.1.4.1.2021.13.15.1.1.5',$idx],
@@ -165,16 +167,14 @@ if ( open(FILE,"$tmp_dir/$history_file_name") ) {;
 
     # need to sleep to get delta
     sleep $sleeptime;
-
 }
 
 print "date\t readbyte\t writebyte\t read\t write\n" if $debug;
 print "$last_check_time\t $tmp_readbyte\t $tmp_writebyte\t $tmp_read\t $tmp_write\n" if $debug;
 
 my ($check_time, $readbyte, $writebyte, $read, $write) = undef;
-# retrieve the data from the remote host
-$check_time = time();
-($readbyte, $writebyte, $read, $write) = $snmp_session->get([
+($check_time, $readbyte, $writebyte, $read, $write) = $snmp_session->get([
+    [$uptimeoid],
     ['.1.3.6.1.4.1.2021.13.15.1.1.3',$idx],
     ['.1.3.6.1.4.1.2021.13.15.1.1.4',$idx],
     ['.1.3.6.1.4.1.2021.13.15.1.1.5',$idx],
@@ -197,6 +197,11 @@ print "$check_time\t $readbyte\t $writebyte\t $read\t $write\n" if $debug;
 
 alarm (0); # Done with network
 
+# deal reboot
+if ( $last_check_time gt $check_time ) {
+    exit (0);
+}
+
 # deal wrap
 if ($readbyte < $tmp_readbyte ) { $readbyte = 4294967295 + $readbyte +1; }
 if ($writebyte < $tmp_writebyte ) { $writebyte = 4294967295 + $writebyte +1; }
@@ -204,11 +209,12 @@ if ($read < $tmp_read ) { $read = 4294967295 + $read +1; }
 if ($write < $tmp_write ) { $write = 4294967295 + $write +1; }
 
 # Calculate Here
-my ($readbyterate, $writebyterate, $readrate, $writerate) = undef;
-$readbyterate = ( $readbyte - $tmp_readbyte ) / ( $check_time - $last_check_time ) / 1024 ;
-$writebyterate = ( $writebyte - $tmp_writebyte ) / ( $check_time - $last_check_time ) / 1024 ;
-$readrate = ( $read - $tmp_read ) / ( $check_time - $last_check_time ) ;
-$writerate = ( $write - $tmp_write ) / ( $check_time - $last_check_time ) ;
+my ($readbyterate, $writebyterate, $readrate, $writerate, $delta) = undef;
+$delta = ( $check_time - $last_check_time ) / 100 ; print "delta: $delta\n" if $debug ;
+$readbyterate = ( $readbyte - $tmp_readbyte ) / $delta / 1024 ;
+$writebyterate = ( $writebyte - $tmp_writebyte ) / $delta / 1024 ;
+$readrate = ( $read - $tmp_read ) / $delta ;
+$writerate = ( $write - $tmp_write ) / $delta ;
 
 print "readbyterate: $readbyterate\n" if $debug;
 print "writebyterate: $writebyterate\n" if $debug;
