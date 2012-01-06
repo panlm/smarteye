@@ -35,6 +35,9 @@ my $OutPktPsCrit = -1;
 my $debug = 0;
 my $perf = 0;
 
+#sysUpTimeInstance
+my $uptimeoid = ".1.3.6.1.2.1.1.3.0";
+
 use SNMP;
 use Getopt::Long;
 use Time::HiRes qw(time);
@@ -238,7 +241,7 @@ if ( ! $opt_n ) {
     printf "i:$i\n" if $debug;
     if ( ! $found ) {
         printf "label not found\n";
-        exit;
+        exit (2);
     }
     if ( ! $opt_n ) {
         $opt_n = scalar(@$ifidx[$i]->val);
@@ -264,9 +267,8 @@ if ( open(FILE,"$tmp_dir/$history_file_name") ) {;
     $tmp_outerror = <FILE>;    chomp($tmp_outerror);
     close(FILE);
 } else {
-    # retrieve the data from the remote host
-    $last_check_time = time();
-    ($tmp_speed, $tmp_in, $tmp_inupkt, $tmp_out, $tmp_outupkt, $tmp_indiscard, $tmp_outdiscard, $tmp_inerror, $tmp_outerror) = $snmp_session->get([
+    ($last_check_time, $tmp_speed, $tmp_in, $tmp_inupkt, $tmp_out, $tmp_outupkt, $tmp_indiscard, $tmp_outdiscard, $tmp_inerror, $tmp_outerror) = $snmp_session->get([
+        [$uptimeoid],
         ['ifSpeed',$opt_n],
         ['ifInOctets',$opt_n],
         ['ifInUcastPkts',$opt_n],
@@ -281,7 +283,6 @@ if ( open(FILE,"$tmp_dir/$history_file_name") ) {;
 
     # need to sleep to get delta
     sleep $sleeptime;
-
 }
 
 print "time\t speed\t\tin\t\tinupkt\t\tout\t\toutupkt\t\tindiscard\toutdiscard\tinerror\tinerror\n" if $debug;
@@ -289,18 +290,18 @@ print "$last_check_time\t $tmp_speed\t$tmp_in\t$tmp_inupkt\t$tmp_out\t$tmp_outup
 
 my ($check_time, $speed, $in, $inupkt, $out, $outupkt, $indiscard, $outdiscard, $inerror, $outerror) = undef;
 # retrieve the data from the remote host
-$check_time = time();
-($speed, $in, $inupkt, $out, $outupkt, $indiscard, $outdiscard, $inerror, $outerror) = $snmp_session->get(
-  [['ifSpeed',$opt_n],
-   ['ifInOctets',$opt_n],
-   ['ifInUcastPkts',$opt_n],
-   ['ifOutOctets',$opt_n],
-   ['ifOutUcastPkts',$opt_n],
-   ['ifInDiscards',$opt_n],
-   ['ifOutDiscards',$opt_n],
-   ['ifInErrors',$opt_n],
-   ['ifOutErrors',$opt_n]]
-);
+($check_time, $speed, $in, $inupkt, $out, $outupkt, $indiscard, $outdiscard, $inerror, $outerror) = $snmp_session->get([
+    [$uptimeoid],
+    ['ifSpeed',$opt_n],
+    ['ifInOctets',$opt_n],
+    ['ifInUcastPkts',$opt_n],
+    ['ifOutOctets',$opt_n],
+    ['ifOutUcastPkts',$opt_n],
+    ['ifInDiscards',$opt_n],
+    ['ifOutDiscards',$opt_n],
+    ['ifInErrors',$opt_n],
+    ['ifOutErrors',$opt_n]
+]);
 check_for_errors();
 
 # save data to history file
@@ -323,19 +324,16 @@ print "$check_time\t $speed\t$in\t$inupkt\t$out\t$outupkt\t$indiscard\t\t$outdis
 
 alarm (0); # Done with network
 
+# deal reboot
+if ( $last_check_time gt $check_time ) {
+    exit (0);
+}
+
 # deal wrap
-if ($in < $tmp_in ) {
-    $in = 4294967295 + $in +1;
-}
-if ($out < $tmp_out ) {
-    $out = 4294967295 + $out +1;
-}
-if ($inupkt < $tmp_inupkt ) {
-    $inupkt = 4294967295 + $inupkt +1;
-}
-if ($outupkt < $tmp_outupkt ) {
-    $outupkt = 4294967295 + $outupkt +1;
-}
+if ( $in      < $tmp_in      ) { $in = 4294967295 + $in +1;           }
+if ( $out     < $tmp_out     ) { $out = 4294967295 + $out +1;         }
+if ( $inupkt  < $tmp_inupkt  ) { $inupkt = 4294967295 + $inupkt +1;   }
+if ( $outupkt < $tmp_outupkt ) { $outupkt = 4294967295 + $outupkt +1; }
 
 #debug ifInOctets
 #my $current = `/bin/date +"%Y%m%d %H%M%S"`;
@@ -346,9 +344,10 @@ if ($outupkt < $tmp_outupkt ) {
 #close FILE;
 
 # Calculate Here
-my ($inbit, $outbit, $inrate, $outrate, $inpkt, $outpkt, $inpktps, $outpktps, $indiscardrate, $outdiscardrate, $inerrorrate, $outerrorrate) = undef;
-$inbit = ( $in - $tmp_in ) * 8 / ( $check_time - $last_check_time ) ;
-$outbit = ( $out - $tmp_out ) * 8 / ( $check_time - $last_check_time ) ;
+my ($delta, $inbit, $outbit, $inrate, $outrate, $inpkt, $outpkt, $inpktps, $outpktps, $indiscardrate, $outdiscardrate, $inerrorrate, $outerrorrate) = undef;
+$delta = ( $check_time - $last_check_time ) / 100;
+$inbit = ( $in - $tmp_in ) * 8 / $delta ;
+$outbit = ( $out - $tmp_out ) * 8 / $delta ;
 if ( $speed ) {
     $inrate = $inbit / $speed * 100 ;
     $outrate = $outbit / $speed * 100 ;
@@ -360,8 +359,8 @@ $inpkt = $inupkt - $tmp_inupkt ;
 $outpkt = $outupkt - $tmp_outupkt ;
 if ( ! $inpkt ) { $inpkt = $inpkt + 1; }
 if ( ! $outpkt ) { $outpkt = $outpkt + 1; }
-$inpktps = $inpkt / ( $check_time - $last_check_time ) ;
-$outpktps = $outpkt / ( $check_time - $last_check_time ) ;
+$inpktps = $inpkt / $delta ;
+$outpktps = $outpkt / $delta ;
 $indiscardrate = ( $indiscard - $tmp_indiscard ) / $inpkt * 100 ;
 $outdiscardrate = ( $outdiscard - $tmp_outdiscard ) / $outpkt * 100 ;
 $inerrorrate = ( $inerror - $tmp_inerror ) / $inpkt * 100 ;

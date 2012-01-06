@@ -25,6 +25,9 @@ my $ConnCrit = -1;
 my $debug = 0;
 my $perf = 0;
 
+#sysUpTimeInstance
+my $uptimeoid = ".1.3.6.1.2.1.1.3.0";
+
 use SNMP;
 use Getopt::Long;
 use vars qw($opt_h $opt_v $opt_f $opt_C $opt_P $opt_V);
@@ -163,17 +166,13 @@ printf "$oid\n" if $debug;
 my ($last_check_time, $tmp_in, $tmp_out) = undef;
 if ( -r "$tmp_dir/$history_file_name" ) {
     open(FILE,"<$tmp_dir/$history_file_name");
-    $last_check_time = <FILE>;
-    chomp($last_check_time);
-    $tmp_in = <FILE>;
-    chomp($tmp_in);
-    $tmp_out = <FILE>;
-    chomp($tmp_out);
+    $last_check_time = <FILE>; chomp($last_check_time);
+    $tmp_in = <FILE>;          chomp($tmp_in);
+    $tmp_out = <FILE>;         chomp($tmp_out);
     close(FILE);
 } else {
-    # retrieve the data from the remote host
-    $last_check_time = time();
-    ($tmp_in, $tmp_out) = $snmp_session->get([
+    ($last_check_time, $tmp_in, $tmp_out) = $snmp_session->get([
+        [$uptimeoid],
         ['1.3.6.1.4.1.22610.2.4.3.4.2.1.1.4',$oid],
         ['1.3.6.1.4.1.22610.2.4.3.4.2.1.1.6',$oid]
     ]);
@@ -181,15 +180,13 @@ if ( -r "$tmp_dir/$history_file_name" ) {
 
     # need to sleep to get delta
     sleep $sleeptime;
-
 }
 
 printf "time: %s\t in:%s\t out:%s\n",$last_check_time,$tmp_in,$tmp_out if $debug;
 
 my ($check_time, $in, $out, $conn) = undef;
-# retrieve the data from the remote host
-$check_time = time();
-($in, $out, $conn) = $snmp_session->get([
+($check_time, $in, $out, $conn) = $snmp_session->get([
+    [$uptimeoid],
     ['1.3.6.1.4.1.22610.2.4.3.4.2.1.1.4',$oid],
     ['1.3.6.1.4.1.22610.2.4.3.4.2.1.1.6',$oid],
     ['1.3.6.1.4.1.22610.2.4.3.4.2.1.1.9',$oid]
@@ -210,18 +207,20 @@ printf "time: %s\t in:%s\t out:%s\t conn:%s\n",$check_time,$in,$out,$conn if $de
 
 alarm (0); # Done with network
 
-# deal wrap
-if ($in < $tmp_in ) {
-    $in = 4294967295 + $in +1;
-}
-if ($out < $tmp_out ) {
-    $out = 4294967295 + $out +1;
+# deal reboot
+if ( $last_check_time gt $check_time ) {
+    exit (0);
 }
 
+# deal wrap
+if ( $in < $tmp_in   ) { $in = 4294967295 + $in +1;   }
+if ( $out < $tmp_out ) { $out = 4294967295 + $out +1; }
+
 # Calculate Here
-my ($inbit, $outbit) = undef;
-$inbit = ( $in - $tmp_in ) * 8 / ( $check_time - $last_check_time ) ;
-$outbit = ( $out - $tmp_out ) * 8 / ( $check_time - $last_check_time ) ;
+my ($delta, $inbit, $outbit) = undef;
+$delta = ( $check_time - $last_check_time ) / 100; print "delta: $delta\n" if $debug;
+$inbit = ( $in - $tmp_in ) * 8 / $delta ;
+$outbit = ( $out - $tmp_out ) * 8 / $delta ;
 
 # Threshold checks
 my $output = undef;

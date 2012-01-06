@@ -23,6 +23,9 @@ my $IOReceiveCrit = -1;
 my $debug = 0;
 my $perf = 0;
 
+#sysUpTimeInstance
+my $uptimeoid = ".1.3.6.1.2.1.1.3.0";
+
 use SNMP;
 use Getopt::Long;
 use Time::HiRes qw(time);
@@ -124,9 +127,8 @@ if ( open(FILE,"$tmp_dir/$history_file_name") ) {;
     $tmp_iorawreceive = <FILE>;    chomp($tmp_iorawreceive);
     close(FILE);
 } else {
-    # retrieve the data from the remote host
-    $last_check_time = time();
-    ($tmp_iorawsent, $tmp_iorawreceive) = $snmp_session->get([
+    ($last_check_time, $tmp_iorawsent, $tmp_iorawreceive) = $snmp_session->get([
+        [$uptimeoid],
         ['ssIORawSent',0],
         ['ssIORawReceived',0]
     ]);
@@ -134,16 +136,14 @@ if ( open(FILE,"$tmp_dir/$history_file_name") ) {;
 
     # need to sleep to get delta
     sleep $sleeptime;
-
 }
 
 print "date\t iorawsent\t iorawreceive\n" if $debug;
 print "$last_check_time\t $tmp_iorawsent\t $tmp_iorawreceive\n" if $debug;
 
 my ($check_time, $iorawsent, $iorawreceive) = undef;
-# retrieve the data from the remote host
-$check_time = time();
-($iorawsent, $iorawreceive) = $snmp_session->get([
+($check_time, $iorawsent, $iorawreceive) = $snmp_session->get([
+    [$uptimeoid],
     ['ssIORawSent',0],
     ['ssIORawReceived',0]
 ]);
@@ -162,18 +162,20 @@ print "$check_time\t $iorawsent\t $iorawreceive\n" if $debug;
 
 alarm (0); # Done with network
 
-# deal wrap
-if ($iorawsent < $tmp_iorawsent ) {
-    $iorawsent = 4294967295 + $iorawsent +1;
-}
-if ($iorawreceive < $tmp_iorawreceive ) {
-    $iorawreceive = 4294967295 + $iorawreceive +1;
+# deal reboot
+if ( $last_check_time gt $check_time ) {
+    exit (0);
 }
 
+# deal wrap
+if ( $iorawsent < $tmp_iorawsent )       { $iorawsent = 4294967295 + $iorawsent +1;       }
+if ( $iorawreceive < $tmp_iorawreceive ) { $iorawreceive = 4294967295 + $iorawreceive +1; }
+
 # Calculate Here
-my ($iosentrate, $ioreceiverate) = undef;
-$iosentrate = ( $iorawsent - $tmp_iorawsent ) / ( $check_time - $last_check_time ) ;
-$ioreceiverate = ( $iorawreceive - $tmp_iorawreceive ) / ( $check_time - $last_check_time ) ;
+my ($delta, $iosentrate, $ioreceiverate) = undef;
+$delta = ( $check_time - $last_check_time ) / 100 ; print "delta: $delta\n" if $debug ;
+$iosentrate = ( $iorawsent - $tmp_iorawsent ) / $delta ;
+$ioreceiverate = ( $iorawreceive - $tmp_iorawreceive ) / $delta ;
 
 print "iorawsent: $iosentrate\n" if $debug;
 print "iorawreceive: $ioreceiverate\n" if $debug;

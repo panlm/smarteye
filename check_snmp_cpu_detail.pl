@@ -40,6 +40,9 @@ my $waitcrit = -1;
 my $debug = 0;
 my $perf = 0;
 
+#sysUpTimeInstance
+my $uptimeoid = ".1.3.6.1.2.1.1.3.0";
+
 use SNMP;
 use Getopt::Long;
 use Time::HiRes qw(time);
@@ -205,8 +208,8 @@ if ( open(FILE,"$tmp_dir/$history_file_name") ) {;
     close(FILE);
 } else {
     # retrieve the data from the remote host
-    $last_check_time = time();
-    ($tmp_user, $tmp_sys, $tmp_nice, $tmp_idle, $tmp_wait) = $snmp_session->get([
+    ($last_check_time, $tmp_user, $tmp_sys, $tmp_nice, $tmp_idle, $tmp_wait) = $snmp_session->get([
+        [$uptimeoid],
         ['ssCpuRawUser',0],
         ['ssCpuRawSystem',0],
         ['ssCpuRawNice',0],
@@ -223,9 +226,9 @@ print "time\t user\t sys\t nice\t idle\t wait\n" if $debug;
 print "$last_check_time\t $tmp_user\t $tmp_sys\t $tmp_nice\t $tmp_idle $tmp_wait\n" if $debug;
 
 my ($check_time, $user, $sys, $nice, $idle, $wait) = undef;
-$check_time = time();
 # retrieve the data from the remote host
-($user, $sys, $nice, $idle, $wait) = $snmp_session->get([
+($check_time, $user, $sys, $nice, $idle, $wait) = $snmp_session->get([
+    [$uptimeoid],
     ['ssCpuRawUser',0],
     ['ssCpuRawSystem',0],
     ['ssCpuRawNice',0],
@@ -250,21 +253,17 @@ print "$check_time\t $user\t $sys\t $nice\t $idle $wait\n" if $debug;
 
 alarm (0); # Done with network
 
-if ($user < $tmp_user ) {
-    $user = 4294967295 + $user +1;
+# deal reboot
+if ( $last_check_time gt $check_time ) {
+    exit (0);
 }
-if ($sys < $tmp_sys ) {
-    $sys = 4294967295 + $sys +1;
-}
-if ($nice < $tmp_nice ) {
-    $nice = 4294967295 + $nice +1;
-}
-if ($idle < $tmp_idle ) {
-    $idle = 4294967295 + $idle +1;
-}
-if ($wait < $tmp_wait ) {
-    $wait = 4294967295 + $wait +1;
-}
+
+# deal wrap
+if ( $user < $tmp_user ) { $user = 4294967295 + $user +1; }
+if ( $sys  < $tmp_sys  ) { $sys = 4294967295 + $sys +1;   }
+if ( $nice < $tmp_nice ) { $nice = 4294967295 + $nice +1; }
+if ( $idle < $tmp_idle ) { $idle = 4294967295 + $idle +1; }
+if ( $wait < $tmp_wait ) { $wait = 4294967295 + $wait +1; }
 
 # The query returns values from uptime, we want over the last sleeptime.
 $user = $user - $tmp_user;

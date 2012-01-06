@@ -23,6 +23,9 @@ my $SwapOutCrit = -1;
 my $debug = 0;
 my $perf = 0;
 
+#sysUpTimeInstance
+my $uptimeoid = ".1.3.6.1.2.1.1.3.0";
+
 use SNMP;
 use Getopt::Long;
 use Time::HiRes qw(time);
@@ -126,9 +129,8 @@ if ( open(FILE,"$tmp_dir/$history_file_name") ) {;
     $tmp_rawswapout = <FILE>;    chomp($tmp_rawswapout);
     close(FILE);
 } else {
-    # retrieve the data from the remote host
-    $last_check_time = time();
-    ($tmp_swapin, $tmp_swapout, $tmp_rawswapin, $tmp_rawswapout) = $snmp_session->get([
+    ($last_check_time, $tmp_swapin, $tmp_swapout, $tmp_rawswapin, $tmp_rawswapout) = $snmp_session->get([
+        [$uptimeoid],
         ['ssSwapIn',0],
         ['ssSwapOut',0],
         ['ssRawSwapIn',0],
@@ -138,16 +140,14 @@ if ( open(FILE,"$tmp_dir/$history_file_name") ) {;
 
     # need to sleep to get delta
     sleep $sleeptime;
-
 }
 
 print "date\t swapin\t swapout\t rawswapin\t rawswapout\n" if $debug;
 print "$last_check_time\t $tmp_swapin\t $tmp_swapout\t $tmp_rawswapin\t $tmp_rawswapout\n" if $debug;
 
 my ($check_time, $swapin, $swapout, $rawswapin, $rawswapout) = undef;
-# retrieve the data from the remote host
-$check_time = time();
-($swapin, $swapout, $rawswapin, $rawswapout) = $snmp_session->get([
+($check_time, $swapin, $swapout, $rawswapin, $rawswapout) = $snmp_session->get([
+    [$uptimeoid],
     ['ssSwapIn',0],
     ['ssSwapOut',0],
     ['ssRawSwapIn',0],
@@ -170,18 +170,20 @@ print "$check_time\t $swapin\t $swapout\t $rawswapin\t $rawswapout\n" if $debug;
 
 alarm (0); # Done with network
 
-# deal wrap
-if ($rawswapin < $tmp_rawswapin ) {
-    $rawswapin = 4294967295 + $rawswapin +1;
-}
-if ($rawswapout < $tmp_rawswapout ) {
-    $rawswapout = 4294967295 + $rawswapout +1;
+# deal reboot
+if ( $last_check_time gt $check_time ) {
+    exit (0);
 }
 
+# deal wrap
+if ( $rawswapin < $tmp_rawswapin   ) { $rawswapin = 4294967295 + $rawswapin +1;   }
+if ( $rawswapout < $tmp_rawswapout ) { $rawswapout = 4294967295 + $rawswapout +1; }
+
 # Calculate Here
-my ($swapinrate, $swapoutrate) = undef;
-$swapinrate = ( $rawswapin - $tmp_rawswapin ) / ( $check_time - $last_check_time ) ;
-$swapoutrate = ( $rawswapout - $tmp_rawswapout ) / ( $check_time - $last_check_time ) ;
+my ($delta, $swapinrate, $swapoutrate) = undef;
+$delta = ( $check_time - $last_check_time ) / 100;
+$swapinrate = ( $rawswapin - $tmp_rawswapin ) / $delta ;
+$swapoutrate = ( $rawswapout - $tmp_rawswapout ) / $delta ;
 
 print "swapin: $swapin\n" if $debug;
 print "swapout: $swapout\n" if $debug;
