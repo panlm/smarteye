@@ -242,8 +242,7 @@ if ( ! $opt_n ) {
     if ( ! $found ) {
         printf "label not found\n";
         exit (2);
-    }
-    if ( ! $opt_n ) {
+    } else {
         $opt_n = scalar(@$ifidx[$i]->val);
     }
 }
