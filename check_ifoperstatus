@@ -1,4 +1,4 @@
-#!/usr/local/smarteye/perl/bin/perl -w
+#!/usr/local/groundwork/perl/bin/perl -w
 #
 # check_ifoperstatus.pl - nagios plugin 
 #
@@ -260,10 +260,6 @@ sub usage() {
   printf "\n";
   printf "usage: \n";
   printf "check_ifoperstatus -k <IF_KEY> -H <HOSTNAME> [-C <community>]\n";
-  printf "Copyright (C) 2000 Christoph Kron\n";
-  printf "check_ifoperstatus.pl comes with ABSOLUTELY NO WARRANTY\n";
-  printf "This programm is licensed under the terms of the ";
-  printf "GNU General Public License\n(check source code for details)\n";
   printf "\n\n";
   exit $ERRORS{"UNKNOWN"};
 }
