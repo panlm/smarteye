@@ -30,7 +30,7 @@ use SNMP;
 use Getopt::Long;
 use Time::HiRes qw(time);
 use vars qw($opt_h $opt_v $opt_C $opt_P $opt_V $opt_f);
-use vars qw($opt_H $opt_l $opt_r $opt_w);
+use vars qw($opt_H $opt_l $opt_L $opt_r $opt_w);
 $opt_C = "public";
 $opt_P = 161;
 $opt_V = "2c";
@@ -59,6 +59,7 @@ my $status = GetOptions (
         "V=s" => \$opt_V, "version=s"        => \$opt_V,
         "H=s" => \$opt_H, "host=s"           => \$opt_H,
         "l=s" => \$opt_l, "label=s"          => \$opt_l,
+        "L" =>   \$opt_L, "list"             => \$opt_L,
         "r=s" => \$opt_r, "ReadByte=s"       => \$opt_r,
         "w=s" => \$opt_w, "WriteByte=s"      => \$opt_w
 );
@@ -106,7 +107,7 @@ if ($opt_w) {
                 usage("critical (-o $opt_w <warn:crit>) must be > warning\n");
 }
 print "WriteByteWarn:$WriteByteWarn; WriteByteCrit:$WriteByteCrit\n" if $debug;
-if (!$opt_l) { die "-l <disk_label> is required\n" }
+if (!$opt_l && !$opt_L) { die "-l <disk_label> is required; or -L to list all\n" }
 
 print "timeout:$TIMEOUT sleeptime:$sleeptime\n" if $debug;
 
@@ -128,9 +129,16 @@ check_for_errors();
 
 my ($idx, $string, $found) = undef;
 my $i = 0;
+if ( $opt_L ) {
+    for ( $i = 0; $i <= $#$diskioidx; $i++ ) {
+        $string = scalar(@$diskiodev[$i]->val);
+        printf "disk_label: %s - %s\n",$i,$string;
+    }
+    exit $ERRORS{'UNKNOWN'};
+}
 for ( $i = 0; $i <= $#$diskioidx; $i++ ) {
     $string = scalar(@$diskiodev[$i]->val);
-    printf "disk_label: %s\n",$i,$string if $debug;
+    printf "disk_label: %s - %s\n",$i,$string if $debug;
     if ( $string eq "$opt_l" ) {
         $found = 1;
         last;
