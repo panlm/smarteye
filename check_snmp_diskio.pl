@@ -289,6 +289,7 @@ sub print_usage () {
         [-V], --version <snmp_version>  (default is $opt_V)
         [-H], --host <ip>
         [-l], --label <disk_label>
+        [-L], --list
         [-r], --ReadByte <warn:crit>
         [-w], --WriteByte <warn:crit>
         \n";
