@@ -23,6 +23,7 @@ my $perf = 0;
 
 use SNMP;
 use Getopt::Long;
+use Data::Dumper;
 use Time::HiRes qw(time);
 use vars qw($opt_h $opt_v $opt_C $opt_P $opt_V $opt_f);
 use vars qw($opt_H $opt_l);
@@ -103,6 +104,7 @@ my ($load1, $load5, $load15) = undef;
     ['laLoad',3]
 ]);
 check_for_errors();
+if ( $load1 =~ /NOSUCHOBJECT/ ) { exit $ERRORS{'UNKNOWN'} };
 
 print "load1\t load5\t load15\n" if $debug;
 print "$load1\t $load5\t $load15\n" if $debug;
@@ -171,14 +173,14 @@ sub print_usage () {
 
 # Help sub
 sub print_help () {
-        print_revision($PROGNAME,'$Revision$');
-        print_usage();
+    print_revision($PROGNAME,'$Revision$');
+    print_usage();
 }
 
 sub check_for_errors {
-        if ( $snmp_session->{ErrorNum} ) {
-                print "UNKNOWN - error retrieving SNMP data: $snmp_session->{ErrorStr}\n";
-                exit $ERRORS{UNKNOWN};
-        }
+    if ( $snmp_session->{ErrorNum} ) {
+        print "UNKNOWN - error retrieving SNMP data: $snmp_session->{ErrorStr}\n";
+        exit $ERRORS{UNKNOWN};
+    }
 }
 
