@@ -25,7 +25,7 @@ use SNMP;
 use Getopt::Long;
 use Data::Dumper;
 use vars qw($opt_h $opt_v $opt_C $opt_P $opt_V $opt_f);
-use vars qw($opt_H $opt_l $opt_t $opt_d);
+use vars qw($opt_H $opt_l $opt_L $opt_t $opt_d);
 $opt_C = "public";
 $opt_P = 161;
 $opt_V = "2c";
@@ -51,6 +51,7 @@ my $status = GetOptions (
         "V=s" => \$opt_V, "version=s"        => \$opt_V,
         "H=s" => \$opt_H, "host=s"           => \$opt_H,
 	"l=s" => \$opt_l, "disklabel=s"      => \$opt_l,
+	"L"   => \$opt_L, "list"             => \$opt_L,
 	"t=s" => \$opt_t, "disktype=s"       => \$opt_t,
 	"d=s" => \$opt_d, "disk=s"           => \$opt_d,
 );
@@ -85,7 +86,7 @@ if ($opt_d) {
 		usage("storage util critical (-d $opt_d <warn:crit>) must be > warning\n");
 }
 print "DiskWarn:$DiskWarn; DiskCrit:$DiskCrit\n" if $debug;
-if ( ! $opt_l && ! $opt_t ) { die "-l <disklabel> or -t <disktype> is required\n" }
+if ( !$opt_l && !$opt_t && !$opt_L ) { die "-l <disklabel> or -t <disktype> is required\n" }
 
 # Get the kernel/system statistic values from SNMP
 
@@ -132,6 +133,12 @@ if ( $opt_V eq "2c" ) {
 #print Dumper($storagetype);
 
 my ($i, $found) = undef;
+if ( $opt_L ) {
+    for ( my $i = 0; $i <= $#$storagedesc; $i++ ) {
+        printf("storagedesc: %s\n",@$storagedesc[$i]);
+    }
+    exit $ERRORS{'UNKNOWN'};
+}
 for ( $i = 0; $i <= $#$storagetype; $i++ ) {
     # .1.3.6.1.2.1.25.2.1.2 hrStorageRam
     # .1.3.6.1.2.1.25.2.1.4 hrStorageFixedDisk
@@ -220,6 +227,7 @@ print "Usage: $PROGNAME
     [-V], --version <snmp_version>  (default is $opt_V)
     [-H], --host <ip>
     [-l], --disklabel <disklabel>
+    [-L], --list
     [-t], --disktype <disktype>
     [-d], --disk <warn:crit>
     \n";
