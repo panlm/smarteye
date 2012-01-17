@@ -254,7 +254,7 @@ print "$check_time\t $user\t $sys\t $nice\t $idle $wait\n" if $debug;
 alarm (0); # Done with network
 
 # deal reboot
-if ( $last_check_time gt $check_time ) {
+if ( $last_check_time > $check_time ) {
     exit (0);
 }
 

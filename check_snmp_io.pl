@@ -163,7 +163,7 @@ print "$check_time\t $iorawsent\t $iorawreceive\n" if $debug;
 alarm (0); # Done with network
 
 # deal reboot
-if ( $last_check_time gt $check_time ) {
+if ( $last_check_time > $check_time ) {
     exit (0);
 }
 

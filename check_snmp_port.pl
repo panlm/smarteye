@@ -241,7 +241,7 @@ if ( ! $opt_n ) {
     printf "i:$i\n" if $debug;
     if ( ! $found ) {
         printf "label not found\n";
-        exit (2);
+        exit $ERRORS{'UNKNOWN'};
     } else {
         $opt_n = scalar(@$ifidx[$i]->val);
     }
@@ -284,8 +284,8 @@ if ( open(FILE,"$tmp_dir/$history_file_name") ) {;
     sleep $sleeptime;
 }
 
-print "time\t speed\t\tin\t\tinupkt\t\tout\t\toutupkt\t\tindiscard\toutdiscard\tinerror\tinerror\n" if $debug;
-print "$last_check_time\t $tmp_speed\t$tmp_in\t$tmp_inupkt\t$tmp_out\t$tmp_outupkt\t$tmp_indiscard\t\t$tmp_outdiscard\t\t$tmp_inerror\t$tmp_outerror \n" if $debug;
+print "time\t speed\t in\t inupkt\t out\t outupkt\t indiscard\t outdiscard\t inerror\t inerror\n" if $debug;
+print "$last_check_time\t $tmp_speed\t $tmp_in\t $tmp_inupkt\t $tmp_out\t $tmp_outupkt\t $tmp_indiscard\t $tmp_outdiscard\t $tmp_inerror\t $tmp_outerror\n" if $debug;
 
 my ($check_time, $speed, $in, $inupkt, $out, $outupkt, $indiscard, $outdiscard, $inerror, $outerror) = undef;
 # retrieve the data from the remote host
@@ -318,13 +318,13 @@ if ( open(FILE, ">$tmp_dir/$history_file_name") ) {
     close(FILE);
 }
 
-print "time\t speed\t\tin\t\tinupkt\t\tout\t\toutupkt\t\tindiscard\toutdiscard\tinerror\tinerror\n" if $debug;
-print "$check_time\t $speed\t$in\t$inupkt\t$out\t$outupkt\t$indiscard\t\t$outdiscard\t\t$inerror\t$outerror \n" if $debug;
+print "time\t speed\t in\t inupkt\t out\t outupkt\t indiscard\t outdiscard\t inerror\t inerror\n" if $debug;
+print "$check_time\t $speed\t $in\t $inupkt\t $out\t $outupkt\t $indiscard\t $outdiscard\t $inerror\t $outerror\n" if $debug;
 
 alarm (0); # Done with network
 
 # deal reboot
-if ( $last_check_time gt $check_time ) {
+if ( $last_check_time > $check_time ) {
     exit (0);
 }
 

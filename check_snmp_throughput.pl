@@ -208,7 +208,7 @@ printf "time: %s\t in:%s\t out:%s\t conn:%s\n",$check_time,$in,$out,$conn if $de
 alarm (0); # Done with network
 
 # deal reboot
-if ( $last_check_time gt $check_time ) {
+if ( $last_check_time > $check_time ) {
     exit (0);
 }
 
