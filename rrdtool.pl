@@ -12,6 +12,11 @@
 #
 # (c) D.J.Leith 2011
 #
+# example by panlm
+# o touch a rrdfile before "./rrdtool.pl create"
+# o add ds/rra
+#   ./rrdtool.pl tune file1.rrd --add-RRA RRA:AVERAGE:0.5:5:8460
+#   ./rrdtool.pl tune file1.rrd --add-DS  DS:c:COUNTER:600:U:U
 ####################################################
 
 use strict;
