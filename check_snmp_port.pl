@@ -250,7 +250,9 @@ if ( ! $opt_n ) {
 printf "port number:$opt_n\n" if $debug;
 
 my $history_file_name = $PROGNAME . "_" . $opt_H . "_" . $opt_n;
+my $inpktps_file_name = "inpktps" . "_" . $opt_H . "_" . $opt_n;
 print "$tmp_dir/$history_file_name\n" if $debug;
+print "$tmp_dir/$inpktps_file_name\n" if $debug;
 
 my ($last_check_time, $tmp_speed, $tmp_in, $tmp_inupkt, $tmp_out, $tmp_outupkt, $tmp_indiscard, $tmp_outdiscard, $tmp_inerror, $tmp_outerror) = undef;
 if ( open(FILE,"$tmp_dir/$history_file_name") ) {;
@@ -465,6 +467,11 @@ if ($perf) {;
     else { printf(" InPktPs=%.2f;%d;%d;;", $inpktps,$InPktPsWarn,$InPktPsCrit) }
     if ($OutPktPsCrit < 0) { printf(" OutPktPs=%.2f;;;;", $outpktps) }
     else { printf(" OutPktPs=%.2f;%d;%d;;", $outpktps,$OutPktPsWarn,$OutPktPsCrit) }
+
+    if ( open(FILE, ">$tmp_dir/$inpktps_file_name") ) {
+        print FILE "$inpktps\n";
+        close(FILE);
+    }
 }
 
 print "\n";
