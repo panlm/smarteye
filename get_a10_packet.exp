@@ -1,0 +1,30 @@
+#!/usr/bin/expect -f
+
+#set timeout -1
+spawn $env(SHELL)
+#match_max 100000
+send -- "ssh admin@172.29.251.12\r"
+expect -exact "ssh admin@172.29.251.12\r
+Password: "
+send -- "Y1nj1%vip\r"
+expect "YJ-DDC2-LB1000-1-Active>"
+send -- "en\r"
+expect -exact "en\r
+Password:"
+send -- "\r"
+expect "YJ-DDC2-LB1000-1-Active#"
+send -- "debug packet count 10000 l3-protocol ip all\r"
+send -- " debug monitor\r"
+sleep 5
+send -- ""
+expect -exact "YJ-DDC2-LB1000-1-Active#"
+send -- "exit\r"
+expect -exact "exit\r
+YJ-DDC2-LB1000-1-Active>"
+send -- "exit\r"
+expect -exact "exit\r
+Are you sure to quit (N/Y)?: "
+send -- "y"
+expect "Connection to 172.29.251.12 closed."
+send -- "exit\r"
+expect eof
