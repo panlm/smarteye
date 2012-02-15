@@ -181,10 +181,10 @@ print "$out";
 if ($perf) {;
 	print " |";
 
-	printf (" dsksize=%.2f;;;;", $dsksize);
-	printf (" dskused=%.2f;;;;", $dskused);
+	printf (" dsksize=%.2f;;;%.2f;%.2f", $dsksize, 0, $dsksize);
+	printf (" dskused=%.2f;;;%.2f;%.2f", $dskused, 0, $dsksize);
 	if ($dskcrit < 0) { printf(" dskutil=%.2f;;;;", $dskutil) }
-	else { printf(" dskutil=%.2f;%d;%d;;", $dskutil,$dskwarn,$dskcrit) }
+	else { printf(" dskutil=%.2f;%d;%d;0;100", $dskutil,$dskwarn,$dskcrit) }
 
 }
 
