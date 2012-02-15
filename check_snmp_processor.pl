@@ -152,7 +152,7 @@ alarm (0); # Done with network
 # Threshold checks
 my $output = "";
 
-$output = $output . sprintf("ProcessorLoad: %.2f KB/s ", $avg);
+$output = $output . sprintf("ProcessorLoad: %.2f ", $avg);
 if ($CPUCrit > 0) {
         ($avg > $CPUCrit) ? ($output = $output . "(Critical) ") :
                 ($avg > $CPUWarn) ? ($output = $output . "(Warning) ") : 
