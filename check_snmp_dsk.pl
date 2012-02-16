@@ -92,8 +92,8 @@ if ($opt_d) {
 
 	($dskwarn && $dskcrit) || usage ("missing value -d <warn:crit>\n");
 
-	($dskwarn =~ /^\d{1,3}$/ && $dskwarn > 0 && $dskwarn <= 100) &&
-	($dskcrit =~ /^\d{1,3}$/ && $dskcrit > 0 && $dskcrit <= 100) ||
+	($dskwarn =~ /^\d{1,3}(.\d{1,2})?$/ && $dskwarn > 0 && $dskwarn <= 100) &&
+	($dskcrit =~ /^\d{1,3}(.\d{1,2})?$/ && $dskcrit > 0 && $dskcrit <= 100) ||
 		usage("Invalid value: -d <warn:crit> (dsk util percent): $opt_d\n");
 
 	($dskcrit > $dskwarn) || 
@@ -184,7 +184,7 @@ if ($perf) {;
 	printf (" dsksize=%.2f;;;%.2f;%.2f", $dsksize, 0, $dsksize);
 	printf (" dskused=%.2f;;;%.2f;%.2f", $dskused, 0, $dsksize);
 	if ($dskcrit < 0) { printf(" dskutil=%.2f;;;;", $dskutil) }
-	else { printf(" dskutil=%.2f;%d;%d;0;100", $dskutil,$dskwarn,$dskcrit) }
+	else { printf(" dskutil=%.2f;%.2f;%.2f;0;100", $dskutil,$dskwarn,$dskcrit) }
 
 }
 
