@@ -15,6 +15,10 @@ if [ ! -d $dir ]; then
     exit 9
 fi
 
-num=$( ls $dir |wc -l )
+now=$( date +%s )
+today=$( date --date 'today 00:00:00' +%s )
+delta=$( echo "($now-$today)/60" |bc )
 
-echo "there are ${num} files in ${dir}. | count=${num};;;; "
+num=$( find $dir -type f -mmin -$delta |wc -l )
+
+echo "there are ${num} files modified today in directory named \"${dir}\". | count=${num};;;; "
