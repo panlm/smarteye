@@ -1,0 +1,12 @@
+
+Enable stub status. Add to nginx.conf (in any server context):
+
+location /nginx_status {
+  stub_status on;
+	#disable access_log if requared
+	access_log   off;
+	allow MonitorServer;
+  deny all;
+}
+
+Restart nginx.
