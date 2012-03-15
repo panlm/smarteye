@@ -21,7 +21,7 @@ use Getopt::Long;
 use lib "/usr/local/nagios/libexec";
 use utils qw(%ERRORS $TIMEOUT);
 #my $TIMEOUT = 15;
-#my %ERRORS=('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
+my %ERRORS=('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>2,'DEPENDENT'=>4);
 
 # SNMP Datas
 my $descr_table = '1.3.6.1.4.1.11.2.3.1.2.2.1.10';
