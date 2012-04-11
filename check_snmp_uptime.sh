@@ -17,6 +17,7 @@ a=$(snmpwalk -v2c -c$comm $host .1.3.6.1.2.1.1.3.0 2>&1)
 if [ $? -ne 0 ]; then
     echo "snmp get error"
     echo $a
+    exit 99
 fi
 
 oldtime=$(cat $out)
