@@ -666,5 +666,3 @@ if (defined($o_shortL[1])) {
 (defined($o_perf)) ? print " | ",$perf_out,"\n" : print "\n";
 
 exit $ERRORS{"OK"};
-
-
