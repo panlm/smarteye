@@ -178,7 +178,7 @@ $actused = $totalmem - $availmem - $shared - $buffer - $cached;
 $actfree = $availmem + $shared + $buffer + $cached;
 $memutil = $memused / $totalmem * 100;
 $actutil = $actused / $totalmem * 100;
-$swaputil = ( $totalswap - $availswap ) / $totalswap * 100;
+$swaputil = ( $totalswap - $availswap ) / ( $totalswap + 1 ) * 100;
 
 print "memused:$memused, memfree:$memfree, actused:$actused, actfree:$actfree, memutil:$memutil, actutil:$actutil, swaputil:$swaputil\n" if $debug;
 
