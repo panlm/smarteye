@@ -18,7 +18,3 @@ esac
 cat /tmp/$$ |sort -k${col}rn |head -n 3 |awk '{printf "%s/%s\n",$3,$8}' |xargs
 
 #rm -f /tmp/$$
-
-
-
-
