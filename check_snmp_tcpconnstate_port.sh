@@ -14,17 +14,20 @@
 #        Initial revision
 #
 
-if [ $# -ne 2 ]; then
-    echo "usage: $0 hostname snmp-community-string"
+if [ $# -ne 3 ]; then
+    echo "usage: $0 hostname snmp-community-string port-number"
     exit 3
 fi
 
 host=$1
 comm=$2
+port=$3
 
-snmpwalk  -v2c -c$comm $host tcpConnState |awk '{
-sub(/\([0-9][0-9]*\)/,"",$NF)
-a[$NF]+=1
+snmpwalk  -v2c -c$comm $host tcpConnState |awk -F '[. ]' '{
+if ( $6 ~ /'"$port"'/ ) {
+  sub(/\([0-9][0-9]*\)/,"",$NF)
+  a[$NF]+=1
+}
 }
 END {
 #for(j in a)print j,a[j] >> "/var/tmp/awk.debug"

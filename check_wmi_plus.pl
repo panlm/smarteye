@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/root/perl5/perlbrew/perls/perl-5.10.1/bin/perl -w
 #
 # check_wmi_plus.pl - nagios plugin for agentless checking of Windows
 #
@@ -46,6 +46,8 @@ my $VERSION="1.52";
 
 # we are looking for the dir where utils.pm is located. This is normally installed as part of Nagios
 use lib "/usr/lib/nagios/plugins";
+use lib "/usr/local/groundwork/perl/lib/site_perl/5.8.8";
+use lib "/usr/local/groundwork/nagios/libexec";
 
 use strict;
 use Getopt::Long;
