@@ -24,7 +24,7 @@ comm=$2
 port=$3
 
 snmpwalk  -v2c -c$comm $host tcpConnState |awk -F '[. ]' '{
-if ( $6 ~ /'"$port"'/ ) {
+if ( $6 ~ /^'"$port"'$/ ) {
   sub(/\([0-9][0-9]*\)/,"",$NF)
   a[$NF]+=1
 }
