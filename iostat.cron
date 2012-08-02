@@ -1,0 +1,3 @@
+# Added by Yinji for disk io monitoring
+#* * * * * /etc/snmp/iostat.sh >/etc/snmp/iostat.sh.log 2>&1
+
