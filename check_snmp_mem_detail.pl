@@ -144,7 +144,8 @@ my $snmp_session = new SNMP::Session (
     DestHost	=> $opt_H,
     Community 	=> $opt_m,
     RemotePort	=> $opt_o,
-    Version	=> $opt_v
+    Version	=> $opt_v,
+    Timeout     => 5000000
 );
 
 # retrieve the data from the remote host

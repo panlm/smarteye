@@ -191,7 +191,8 @@ my $snmp_session = new SNMP::Session (
     DestHost	=> $opt_H,
     Community 	=> $opt_m,
     RemotePort	=> $opt_o,
-    Version	=> $opt_v
+    Version	=> $opt_v,
+    Timeout     => 5000000
 );
 
 my $history_file_name = $PROGNAME . "_" . $opt_H ;

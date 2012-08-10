@@ -96,7 +96,8 @@ my $snmp_session = new SNMP::Session (
     DestHost	=> $opt_H,
     Community 	=> $opt_C,
     RemotePort	=> $opt_P,
-    Version	=> $opt_V
+    Version	=> $opt_V,
+    Timeout     => 5000000
 );
 
 my ($storageidx, $storagetype, $storagedesc) = undef;

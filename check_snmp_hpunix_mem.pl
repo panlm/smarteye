@@ -107,7 +107,8 @@ my $snmp_session = new SNMP::Session (
     DestHost	=> $opt_H,
     Community 	=> $opt_C,
     RemotePort	=> $opt_O,
-    Version	=> $opt_V
+    Version	=> $opt_V,
+    Timeout     => 5000000
 );
 
 my ($hpu_memsize,$hpu_memfree) = undef;
