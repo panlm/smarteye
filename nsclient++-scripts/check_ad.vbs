@@ -4,8 +4,8 @@
 'Version: 3.0
 '
 ' Usage:
-' cscript C:\Users\administrator.INGEEK\Desktop\check_ad.vbs /test:services,replications
-' cscript C:\Users\administrator.INGEEK\Desktop\check_ad.vbs
+' cscript C:\Users\administrator.INGEEK\Desktop\check_ad.vbs \
+'     /test:services,replications,advertising,fsmocheck,ridmanager,machineaccount
 '
 'Mauled over by John Jore, j-o-h-n-a-t-j-o-r-e-d-o-t-n-o 16/11/2010 to work on W2K8, x32
 'as well as remove some, eh... un-needed lines of code, general optimization as well as adding command parameter support
