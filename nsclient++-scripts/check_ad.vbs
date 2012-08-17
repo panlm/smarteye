@@ -3,6 +3,10 @@
 'Author: Felipe Ferreira
 'Version: 3.0
 '
+' Usage:
+' cscript C:\Users\administrator.INGEEK\Desktop\check_ad.vbs /test:services,replications
+' cscript C:\Users\administrator.INGEEK\Desktop\check_ad.vbs
+'
 'Mauled over by John Jore, j-o-h-n-a-t-j-o-r-e-d-o-t-n-o 16/11/2010 to work on W2K8, x32
 'as well as remove some, eh... un-needed lines of code, general optimization as well as adding command parameter support
 'This is where i found the original script, http://felipeferreira.net/?p=315&cpage=1#comments
