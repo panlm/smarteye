@@ -39,7 +39,7 @@ $NagiosDescription = ""
 ForEach ($Type in Test-ReplicationHealth -Identity $env:computername) {
 
  	# Look for failed replications
-	if ($TypeResult -like "*FAILED*") {
+	if ($Type.Result -like "*FAILED*") {
 		# Format the output for Nagios
 		if ($NagiosDescription -ne "") {
 			$NagiosDescription = $NagiosDescription + ", "
